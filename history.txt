@@ -1,2 +1,9 @@
 v1.0
+----
 - initial release
+
+v1.1
+----
+- bug fix datetime to local time
+- added BJSONParameters 
+- added global types (reverse format from fastJSON to overcome size limits on name strings)

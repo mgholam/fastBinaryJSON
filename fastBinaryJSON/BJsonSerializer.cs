@@ -14,52 +14,60 @@ namespace fastBinaryJSON
 {
     internal class BJSONSerializer
     {
-        private readonly MemoryStream _output = new MemoryStream();
-        readonly bool useMinimalDataSetSchema;
+        private MemoryStream _output = new MemoryStream();
         readonly int _MAX_DEPTH = 10;
-        bool _useGlobalTypes = false;
         int _current_depth = 0;
-        bool _useunicode = true;
         private Dictionary<string, int> _globalTypes = new Dictionary<string, int>();
+        private BJSONParameters _params;
 
-        private bool useExtension = true;
-        private bool serializeNulls = true;
-
-        internal BJSONSerializer(bool UseMinimalDataSetSchema, bool useUnicodeStrings)
+        internal BJSONSerializer(BJSONParameters param)
         {
-            this.useMinimalDataSetSchema = UseMinimalDataSetSchema;
-            this._useunicode = useUnicodeStrings;
+            _params = param;
         }
 
         internal byte[] ConvertToBJSON(object obj)
         {
             WriteValue(obj);
-            // FIX : add $types
+            // add $types
+            if (_params.UsingGlobalTypes)
+            {
+                if (_typesposition > -1)
+                {
+                    byte[] buffer = _output.ToArray();
+                    byte[] before = new byte[_typesposition];
+                    Buffer.BlockCopy(buffer, 0, before, 0, _typesposition);
+
+                    _output = new MemoryStream();
+                    _output.Write(before, 0, (int)_typesposition);
+                    WriteName("$types");
+                    WriteColon();
+                    WriteTypes(_globalTypes);
+                    WriteComma();
+                    _output.Write(buffer, _typesposition, buffer.Length - _typesposition);
+                    byte[] types = _output.ToArray();
+
+                    return types;
+                }
+            }
+
             return _output.ToArray();
+        }
 
-            //string str = "";
-            //if (_useGlobalTypes)
-            //{
-            //    StringBuilder sb = new StringBuilder();
-            //    sb.Append("{\"$types\":{");
-            //    bool pendingSeparator = false;
-            //    foreach (var kv in _globalTypes)
-            //    {
-            //        if (pendingSeparator) sb.Append(',');
-            //        pendingSeparator = true;
-            //        sb.Append("\"");
-            //        sb.Append(kv.Key);
-            //        sb.Append("\":\"");
-            //        sb.Append(kv.Value);
-            //        sb.Append("\"");
-            //    }
-            //    sb.Append("},");
-            //    str = sb.ToString() + _output.ToString();
-            //}
-            //else
-            //    str = _output.ToString();
+        private void WriteTypes(Dictionary<string, int> dic)
+        {
+            _output.WriteByte(TOKENS.DOC_START);
 
-            //return str;
+            bool pendingSeparator = false;
+
+            foreach (var entry in dic)
+            {
+                if (pendingSeparator) WriteComma();
+
+                WritePair(entry.Value.ToString(), entry.Key);
+
+                pendingSeparator = true;
+            }
+            _output.WriteByte(TOKENS.DOC_END);
         }
 
         private void WriteValue(object obj)
@@ -327,7 +335,7 @@ namespace fastBinaryJSON
         {
             _output.WriteByte(TOKENS.DOC_START);
             {
-                WritePair("$schema", useMinimalDataSetSchema ? (object)GetSchema(ds) : ds.GetXmlSchema());
+                WritePair("$schema", _params.UseOptimizedDatasetSchema ? (object)GetSchema(ds) : ds.GetXmlSchema());
                 WriteComma();
             }
             bool tablesep = false;
@@ -372,7 +380,7 @@ namespace fastBinaryJSON
             _output.WriteByte(TOKENS.DOC_START);
             //if (this.useExtension)
             {
-                this.WritePair("$schema", this.useMinimalDataSetSchema ? (object)this.GetSchema(dt) : this.GetXmlSchema(dt));
+                this.WritePair("$schema", _params.UseOptimizedDatasetSchema ? (object)this.GetSchema(dt) : this.GetXmlSchema(dt));
                 WriteComma();
             }
 
@@ -383,28 +391,23 @@ namespace fastBinaryJSON
         }
 #endif
         bool _firstWritten = false;
+        int _typesposition = -1;
 
         private void WriteObject(object obj)
         {
-            if (_useGlobalTypes == false)
-                _output.WriteByte(TOKENS.DOC_START);
-            else
-            {
-                if (_firstWritten)
-                    _output.WriteByte(TOKENS.DOC_START); 
-            }
+            _output.WriteByte(TOKENS.DOC_START);
+            if (_firstWritten == false && _params.UsingGlobalTypes == true)
+                _typesposition = (int)_output.Position; // save position
             _firstWritten = true;
             _current_depth++;
             if (_current_depth > _MAX_DEPTH)
                 throw new Exception("Serializer encountered maximum depth of " + _MAX_DEPTH);
 
-
-            Dictionary<string, string> map = new Dictionary<string, string>();
             Type t = obj.GetType();
             bool append = false;
             //if (useExtension)
             {
-                if (_useGlobalTypes == false)
+                if (_params.UsingGlobalTypes == false)
                     WritePairFast("$type", BJSON.Instance.GetTypeAssemblyName(t));
                 else
                 {
@@ -426,51 +429,45 @@ namespace fastBinaryJSON
                 if (append)
                     WriteComma();
                 var o = p.Getter(obj);
-                if ((o == null || o is DBNull) && serializeNulls == false)
+                if ((o == null || o is DBNull) && _params.SerializeNulls == false)
                     append = false;
                 else
                 {
                     WritePair(p.Name, o);
-                    if (o != null && useExtension)
-                    {
-                        Type tt = o.GetType();
-                        if (tt == typeof(System.Object))
-                            map.Add(p.Name, tt.ToString());
-                    }
                     append = true;
                 }
             }
             _current_depth--;
-            _output.WriteByte(TOKENS.DOC_END); 
+            _output.WriteByte(TOKENS.DOC_END);
             _current_depth--;
 
         }
 
         private void WritePairFast(string name, string value)
         {
-            if ((value == null) && serializeNulls == false)
+            if ((value == null) && _params.SerializeNulls == false)
                 return;
             WriteName(name);
 
-            WriteColon(); 
+            WriteColon();
 
             WriteString(value);
         }
 
         private void WritePair(string name, object value)
         {
-            if ((value == null || value is DBNull) && serializeNulls == false)
+            if ((value == null || value is DBNull) && _params.SerializeNulls == false)
                 return;
             WriteName(name);
 
-            WriteColon(); 
+            WriteColon();
 
             WriteValue(value);
         }
 
         private void WriteArray(IEnumerable array)
         {
-            _output.WriteByte(TOKENS.ARRAY_START); 
+            _output.WriteByte(TOKENS.ARRAY_START);
 
             bool pendingSeperator = false;
 
@@ -504,7 +501,7 @@ namespace fastBinaryJSON
 
         private void WriteDictionary(IDictionary dic)
         {
-            _output.WriteByte(TOKENS.ARRAY_START); 
+            _output.WriteByte(TOKENS.ARRAY_START);
 
             bool pendingSeparator = false;
 
@@ -515,11 +512,11 @@ namespace fastBinaryJSON
                 WritePair("k", entry.Key);
                 WriteComma();
                 WritePair("v", entry.Value);
-                _output.WriteByte(TOKENS.DOC_END); 
+                _output.WriteByte(TOKENS.DOC_END);
 
                 pendingSeparator = true;
             }
-            _output.WriteByte(TOKENS.ARRAY_END); 
+            _output.WriteByte(TOKENS.ARRAY_END);
         }
 
         private void WriteName(string s)
@@ -533,7 +530,7 @@ namespace fastBinaryJSON
         private void WriteString(string s)
         {
             byte[] b = null;
-            if (_useunicode)
+            if (_params.UseUnicodeStrings)
             {
                 _output.WriteByte(TOKENS.UNICODE_STRING);
                 b = BJSON.Instance.unicode.GetBytes(s);

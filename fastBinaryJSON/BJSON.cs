@@ -48,6 +48,30 @@ namespace fastBinaryJSON
     //public delegate string Serialize(object data);
     //public delegate object Deserialize(string data);
 
+    public class BJSONParameters
+    {
+        /// <summary> 
+        /// Optimize the schema for Datasets (default = True)
+        /// </summary>
+        public bool UseOptimizedDatasetSchema = true;
+        /// <summary>
+        /// Serialize readonly properties (default = False)
+        /// </summary>
+        public bool ShowReadOnlyProperties = false;
+        /// <summary>
+        /// Use global types $types for more compact size when using a lot of classes (default = True)
+        /// </summary>
+        public bool UsingGlobalTypes = true;
+        /// <summary>
+        /// Use Unicode strings = T (faster), Use UTF8 strings = F (smaller) (default = True)
+        /// </summary>
+        public bool UseUnicodeStrings = true;
+        /// <summary>
+        /// Serialize Null values to the output (default = False)
+        /// </summary>
+        public bool SerializeNulls = false;
+    }
+
     public class BJSON
     {
         public readonly static BJSON Instance = new BJSON();
@@ -55,27 +79,25 @@ namespace fastBinaryJSON
         private BJSON()
         {
         }
-        public bool UseOptimizedDatasetSchema = true;
-        public bool ShowReadOnlyProperties = false;
-        //public bool UsingGlobalTypes = true;
-        public bool UseUnicodeStrings = true;
+        public BJSONParameters Parameters = new BJSONParameters();
         public UnicodeEncoding unicode = new UnicodeEncoding();
         public UTF8Encoding utf8 = new UTF8Encoding();
+        private BJSONParameters _params;
 
-        public byte[] ToJSON(object obj)
+        public byte[] ToBJSON(object obj)
         {
-            return ToJSON(obj, UseOptimizedDatasetSchema, UseUnicodeStrings);
+            _params = Parameters;
+            return ToBJSON(obj, _params);
         }
 
-        public byte[] ToJSON(object obj,
-                             bool enableOptimizedDatasetSchema,
-                             bool useUnicodeStrings)
+        public byte[] ToBJSON(object obj, BJSONParameters param)
         {
-            return new BJSONSerializer(enableOptimizedDatasetSchema, useUnicodeStrings).ConvertToBJSON(obj);
+            return new BJSONSerializer(param).ConvertToBJSON(obj);
         }
 
         public object Parse(byte[] json)
         {
+            _params = Parameters;
             return new BJsonParser(json).Decode();
         }
 
@@ -91,6 +113,7 @@ namespace fastBinaryJSON
 
         public object ToObject(byte[] json, Type type)
         {
+            _params = Parameters;
             var d = new BJsonParser(json).Decode();
             var ht = d as Dictionary<string, object>;
             if (ht == null) return d;
@@ -196,7 +219,7 @@ namespace fastBinaryJSON
 #endif
             public GenericSetter setter;
             public bool isEnum;
-            //public bool isDateTime;
+            public bool isDateTime;
             public Type[] GenericTypes;
             //public bool isInt;
             //public bool isLong;
@@ -272,6 +295,7 @@ namespace fastBinaryJSON
 
             d.isEnum = t.IsEnum;
             d.isClass = t.IsClass;
+            d.isDateTime = t == typeof(DateTime);
 
             if (d.isDictionary && d.GenericTypes.Length > 0 && d.GenericTypes[0] == typeof(string))
                 d.isStringDictionary = true;
@@ -379,7 +403,7 @@ namespace fastBinaryJSON
             List<Getters> getters = new List<Getters>();
             foreach (PropertyInfo p in props)
             {
-                if (!p.CanWrite && ShowReadOnlyProperties == false) continue;
+                if (!p.CanWrite && _params.ShowReadOnlyProperties == false) continue;
 
                 object[] att = p.GetCustomAttributes(typeof(System.Xml.Serialization.XmlIgnoreAttribute), false);
                 if (att != null && att.Length > 0)
@@ -423,15 +447,16 @@ namespace fastBinaryJSON
         private object ParseDictionary(Dictionary<string, object> d, Dictionary<string, object> globaltypes, Type type)
         {
             object tn = "";
-            //if (d.TryGetValue("$types", out tn))
-            //{
-            //    UsingGlobalTypes = true;
-            //    globaltypes = new Dictionary<string, object>();
-            //    foreach (var kv in (Dictionary<string, object>)tn)
-            //    {
-            //        globaltypes.Add((string)kv.Value, kv.Key);
-            //    }
-            //}
+            if (d.TryGetValue("$types", out tn))
+            {
+                _params.UsingGlobalTypes = true;
+                if (globaltypes == null)
+                    globaltypes = new Dictionary<string, object>();
+                foreach (var kv in (Dictionary<string, object>)tn)
+                {
+                    globaltypes.Add((string)kv.Key, kv.Value);
+                }
+            }
 
             bool found = d.TryGetValue("$type", out tn);
 #if !SILVERLIGHT
@@ -442,12 +467,12 @@ namespace fastBinaryJSON
 #endif
             if (found)
             {
-                //if (UsingGlobalTypes)
-                //{
-                //    object tname = "";
-                //    if (globaltypes.TryGetValue((string)tn, out tname))
-                //        tn = tname;
-                //}
+                if (_params.UsingGlobalTypes)
+                {
+                    object tname = "";
+                    if (globaltypes.TryGetValue((string)tn, out tname))
+                        tn = tname;
+                }
                 type = GetTypeFromCache((string)tn);
             }
 
@@ -474,8 +499,10 @@ namespace fastBinaryJSON
                         else if (pi.isCustomType)
                             oset = CreateCustom((string)v, pi.pt);
 #endif
+                        if (pi.isDateTime)
+                            oset = ((DateTime)v).ToLocalTime();
 
-                        if (pi.isGenericType && pi.isValueType == false && pi.isDictionary == false)
+                        else if (pi.isGenericType && pi.isValueType == false && pi.isDictionary == false)
 #if SILVERLIGHT
                             oset = CreateGenericList((List<object>)v, pi.pt, pi.bt, globaltypes);
 #else

@@ -32,6 +32,7 @@ namespace consoletest
     	public string Name { get; set; }
     	public string Address { get; set;}
     	public int Age { get; set;}
+        public DateTime Date { get; set; }
     	public baseclass[] objs { get; set;}
         public Dictionary<string, class1> dic { get; set; }
     }
@@ -48,8 +49,6 @@ namespace consoletest
 
         public static void Main(string[] args)
         {
-            //returns rr = new returns();
-            //rr.name = "jjkjkjhkj";
             Return r = new Return();
             r.Name = "hello";
             r.Field1 = "dsasdF";
@@ -70,17 +69,16 @@ namespace consoletest
 
             //fastJSON.JSON.Instance.RegisterCustomType(typeof(TimeSpan), tsser, tsdes);
             //fastJSON.JSON.Instance.RegisterCustomType(typeof(System.Drawing.Point), pser, pdes);
+            fastBinaryJSON.BJSON.Instance.Parameters.UsingGlobalTypes = false;
             List<object> list = new List<object>();
             list.Add("hello there");
             list.Add(Guid.NewGuid());
             list.Add(true);
             list.Add(null);
             list.Add(DateTime.Now);
-            var ooo= fastBinaryJSON.BJSON.Instance.ToJSON(list);
+            var ooo= fastBinaryJSON.BJSON.Instance.ToBJSON(list);
             var ppp = fastBinaryJSON.BJSON.Instance.ToObject(ooo);
-            fastBinaryJSON.BJSON.Instance.ShowReadOnlyProperties = true;
-            //fastBinaryJSON.BJSON.Instance.UsingGlobalTypes = false;
-            byte[] ts = fastBinaryJSON.BJSON.Instance.ToJSON(r);
+            byte[] ts = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
             object dic2 = fastBinaryJSON.BJSON.Instance.Parse(ts);
             object tsd = fastBinaryJSON.BJSON.Instance.ToObject(ts);
 
@@ -94,7 +92,7 @@ namespace consoletest
 
             //fastJSON.JSON.Instance.UseSerializerExtension = false;
             //fastJSON.JSON.Instance.UseFastGuid = false;
-            byte[] str = fastBinaryJSON.BJSON.Instance.ToJSON(ne, true, true);
+            byte[] str = fastBinaryJSON.BJSON.Instance.ToBJSON(ne);
             object dic = fastBinaryJSON.BJSON.Instance.Parse(str);
             object oo = fastBinaryJSON.BJSON.Instance.ToObject<NoExt>(str);//<NoExt>(str);
 
@@ -256,7 +254,7 @@ namespace consoletest
                 colclass deserializedStore;
                 byte[] jsonText = null;
 
-                jsonText = fastBinaryJSON.BJSON.Instance.ToJSON(c);
+                jsonText = fastBinaryJSON.BJSON.Instance.ToBJSON(c);
                 //Console.WriteLine(" size = " + jsonText.Length);
                 for (int i = 0; i < count; i++)
                 {
@@ -277,7 +275,7 @@ namespace consoletest
                 byte[] jsonText = null;
                 for (int i = 0; i < count; i++)
                 {
-                    jsonText = fastBinaryJSON.BJSON.Instance.ToJSON(c);
+                    jsonText = fastBinaryJSON.BJSON.Instance.ToBJSON(c);
                 }
                 Console.Write("\t" + DateTime.Now.Subtract(st).TotalMilliseconds);
             }
