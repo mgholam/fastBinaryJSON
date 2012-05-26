@@ -257,7 +257,7 @@ namespace fastBinaryJSON
             long l = Helper.ToInt64(json, index);
             index += 8;
 
-            DateTime dt = new DateTime(l); 
+            DateTime dt = new DateTime(l).ToLocalTime(); // to local time
 
             return dt;
         }

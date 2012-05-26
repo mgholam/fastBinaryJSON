@@ -69,7 +69,6 @@ namespace consoletest
 
             //fastJSON.JSON.Instance.RegisterCustomType(typeof(TimeSpan), tsser, tsdes);
             //fastJSON.JSON.Instance.RegisterCustomType(typeof(System.Drawing.Point), pser, pdes);
-            fastBinaryJSON.BJSON.Instance.Parameters.UsingGlobalTypes = false;
             List<object> list = new List<object>();
             list.Add("hello there");
             list.Add(Guid.NewGuid());

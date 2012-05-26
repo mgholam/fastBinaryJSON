@@ -219,7 +219,7 @@ namespace fastBinaryJSON
 #endif
             public GenericSetter setter;
             public bool isEnum;
-            public bool isDateTime;
+            //public bool isDateTime;
             public Type[] GenericTypes;
             //public bool isInt;
             //public bool isLong;
@@ -292,10 +292,9 @@ namespace fastBinaryJSON
             d.isDataSet = t == typeof(DataSet);
             d.isDataTable = t == typeof(DataTable);
 #endif
-
+            //d.isDateTime = t == typeof(DateTime);
             d.isEnum = t.IsEnum;
             d.isClass = t.IsClass;
-            d.isDateTime = t == typeof(DateTime);
 
             if (d.isDictionary && d.GenericTypes.Length > 0 && d.GenericTypes[0] == typeof(string))
                 d.isStringDictionary = true;
@@ -444,12 +443,13 @@ namespace fastBinaryJSON
 
         #endregion
 
+        private bool _globalTypes = false;
         private object ParseDictionary(Dictionary<string, object> d, Dictionary<string, object> globaltypes, Type type)
         {
             object tn = "";
             if (d.TryGetValue("$types", out tn))
             {
-                _params.UsingGlobalTypes = true;
+                _globalTypes = true;
                 if (globaltypes == null)
                     globaltypes = new Dictionary<string, object>();
                 foreach (var kv in (Dictionary<string, object>)tn)
@@ -467,7 +467,7 @@ namespace fastBinaryJSON
 #endif
             if (found)
             {
-                if (_params.UsingGlobalTypes)
+                if (_globalTypes)
                 {
                     object tname = "";
                     if (globaltypes.TryGetValue((string)tn, out tname))
@@ -499,10 +499,8 @@ namespace fastBinaryJSON
                         else if (pi.isCustomType)
                             oset = CreateCustom((string)v, pi.pt);
 #endif
-                        if (pi.isDateTime)
-                            oset = ((DateTime)v).ToLocalTime();
 
-                        else if (pi.isGenericType && pi.isValueType == false && pi.isDictionary == false)
+                        if (pi.isGenericType && pi.isValueType == false && pi.isDictionary == false)
 #if SILVERLIGHT
                             oset = CreateGenericList((List<object>)v, pi.pt, pi.bt, globaltypes);
 #else
@@ -510,6 +508,9 @@ namespace fastBinaryJSON
 #endif
                         else if (pi.isByteArray)
                             oset = v;
+
+                        //else if (pi.isDateTime)
+                        //    oset = ((DateTime)v).ToLocalTime(); // FEATURE : to local time ??
 
                         else if (pi.isArray && pi.isValueType == false)
 #if SILVERLIGHT
