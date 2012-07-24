@@ -7,3 +7,8 @@ v1.1
 - bug fix datetime to local time
 - added BJSONParameters 
 - added global types (reverse format from fastJSON to overcome size limits on name strings)
+
+v1.2
+----
+- refactored reflection code into Reflection class
+- added support for top level struct object serialize/deserialize

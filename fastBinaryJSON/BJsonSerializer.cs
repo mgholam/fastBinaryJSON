@@ -408,11 +408,11 @@ namespace fastBinaryJSON
             //if (useExtension)
             {
                 if (_params.UsingGlobalTypes == false)
-                    WritePairFast("$type", BJSON.Instance.GetTypeAssemblyName(t));
+                    WritePairFast("$type", Reflection.Instance.GetTypeAssemblyName(t));
                 else
                 {
                     int dt = 0;
-                    string ct = BJSON.Instance.GetTypeAssemblyName(t);
+                    string ct = Reflection.Instance.GetTypeAssemblyName(t);
                     if (_globalTypes.TryGetValue(ct, out dt) == false)
                     {
                         dt = _globalTypes.Count + 1;
@@ -423,7 +423,7 @@ namespace fastBinaryJSON
                 append = true;
             }
 
-            List<Getters> g = BJSON.Instance.GetGetters(t);
+            List<Getters> g = Reflection.Instance.GetGetters(t);
             foreach (var p in g)
             {
                 if (append)

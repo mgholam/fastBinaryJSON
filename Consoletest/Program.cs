@@ -8,7 +8,10 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace consoletest
 {
-    public class Return 
+    public
+        struct
+        //class
+        Return 
     {
         public object ReturnEntity { get; set; }
         public string Name { get; set; }
@@ -69,14 +72,14 @@ namespace consoletest
 
             //fastJSON.JSON.Instance.RegisterCustomType(typeof(TimeSpan), tsser, tsdes);
             //fastJSON.JSON.Instance.RegisterCustomType(typeof(System.Drawing.Point), pser, pdes);
-            List<object> list = new List<object>();
-            list.Add("hello there");
-            list.Add(Guid.NewGuid());
-            list.Add(true);
-            list.Add(null);
-            list.Add(DateTime.Now);
-            var ooo= fastBinaryJSON.BJSON.Instance.ToBJSON(list);
-            var ppp = fastBinaryJSON.BJSON.Instance.ToObject(ooo);
+            //List<object> list = new List<object>();
+            //list.Add("hello there");
+            //list.Add(Guid.NewGuid());
+            //list.Add(true);
+            //list.Add(null);
+            //list.Add(DateTime.Now);
+           // var ooo= fastBinaryJSON.BJSON.Instance.ToBJSON(list);
+           // var ppp = fastBinaryJSON.BJSON.Instance.ToObject(ooo);
             byte[] ts = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
             object dic2 = fastBinaryJSON.BJSON.Instance.Parse(ts);
             object tsd = fastBinaryJSON.BJSON.Instance.ToObject(ts);

@@ -81,6 +81,7 @@
     <Compile Include="BJsonSerializer.cs" />
     <Compile Include="BJSON.cs" />
     <Compile Include="BJsonParser.cs" />
+    <Compile Include="Reflection.cs" />
     <Compile Include="SafeDictionary.cs" />
   </ItemGroup>
   <ItemGroup>
