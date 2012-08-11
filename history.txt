@@ -12,3 +12,13 @@ v1.2
 ----
 - refactored reflection code into Reflection class
 - added support for top level struct object serialize/deserialize
+
+v1.3
+----
+- bug fix reflection code 
+- added unit tests 
+- changed ArrayList to List<object>
+- updated code to be similar to fastJSON 
+- deserialize ToObject< Dictionary<T,V> >  
+- deserialize ToObject< List<T> >
+- added FillObject method
