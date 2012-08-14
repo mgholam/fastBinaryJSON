@@ -22,3 +22,8 @@ v1.3
 - deserialize ToObject< Dictionary<T,V> >  
 - deserialize ToObject< List<T> >
 - added FillObject method
+
+v1.3.1
+------
+- bug fix $types and arrays
+- optimize writting $types

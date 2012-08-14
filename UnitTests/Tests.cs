@@ -231,6 +231,13 @@ namespace UnitTests
         }
         #endregion
 
+        [Test]
+        public static void objectarray()
+        {
+            var o = new object[3] { 1, "sdfsdfs", DateTime.Now};
+            var b = fastBinaryJSON.BJSON.Instance.ToBJSON(o);
+            var s = fastBinaryJSON.BJSON.Instance.ToObject(b); 
+        }
 
         [Test]
         public static void ClassTest()

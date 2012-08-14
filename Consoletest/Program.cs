@@ -52,56 +52,56 @@ namespace consoletest
 
         public static void Main(string[] args)
         {
-            Return r = new Return();
-            r.Name = "hello";
-            r.Field1 = "dsasdF";
-            r.Field2 = 2312;
-            r.date = DateTime.Now;
-            r.isValid = true;
-            r.ds = CreateDataset().Tables[0];
+           // Return r = new Return();
+           // r.Name = "hello";
+           // r.Field1 = "dsasdF";
+           // r.Field2 = 2312;
+           // r.date = DateTime.Now;
+           // r.isValid = true;
+           // r.ds = CreateDataset().Tables[0];
 
-            r.ReturnEntity = 
-            	new List<int>( new int[] { 1,2,3,4,5 });
-            //    // Guid.NewGuid();
-            //    //	CreateDataset();
-            //    new object[] { new Return() };
-            //r.time = new TimeSpan(1, 2, 3);
-            //r.point = new System.Drawing.Point(10, 10);
+           // r.ReturnEntity = 
+           //     new List<int>( new int[] { 1,2,3,4,5 });
+           // //    // Guid.NewGuid();
+           // //    //	CreateDataset();
+           // //    new object[] { new Return() };
+           // //r.time = new TimeSpan(1, 2, 3);
+           // //r.point = new System.Drawing.Point(10, 10);
 
-            //rr.Add(r);
+           // //rr.Add(r);
 
-            //fastJSON.JSON.Instance.RegisterCustomType(typeof(TimeSpan), tsser, tsdes);
-            //fastJSON.JSON.Instance.RegisterCustomType(typeof(System.Drawing.Point), pser, pdes);
-            //List<object> list = new List<object>();
-            //list.Add("hello there");
-            //list.Add(Guid.NewGuid());
-            //list.Add(true);
-            //list.Add(null);
-            //list.Add(DateTime.Now);
-           // var ooo= fastBinaryJSON.BJSON.Instance.ToBJSON(list);
-           // var ppp = fastBinaryJSON.BJSON.Instance.ToObject(ooo);
-            byte[] ts = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
-            object dic2 = fastBinaryJSON.BJSON.Instance.Parse(ts);
-            object tsd = fastBinaryJSON.BJSON.Instance.ToObject(ts);
+           // //fastJSON.JSON.Instance.RegisterCustomType(typeof(TimeSpan), tsser, tsdes);
+           // //fastJSON.JSON.Instance.RegisterCustomType(typeof(System.Drawing.Point), pser, pdes);
+           // //List<object> list = new List<object>();
+           // //list.Add("hello there");
+           // //list.Add(Guid.NewGuid());
+           // //list.Add(true);
+           // //list.Add(null);
+           // //list.Add(DateTime.Now);
+           //// var ooo= fastBinaryJSON.BJSON.Instance.ToBJSON(list);
+           //// var ppp = fastBinaryJSON.BJSON.Instance.ToObject(ooo);
+           // byte[] ts = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
+           // object dic2 = fastBinaryJSON.BJSON.Instance.Parse(ts);
+           // object tsd = fastBinaryJSON.BJSON.Instance.ToObject(ts);
 
-            NoExt ne = new NoExt();
-            ne.Name = "hello";
-            ne.Address = "here";
-            ne.Age= 10;
-            ne.dic = new Dictionary<string, class1>();
-            ne.dic.Add("hello", new class1("asda","asdas",Guid.NewGuid()));
-            ne.objs = new baseclass[] { new class1("a","1",Guid.NewGuid()), new class2("b","2","desc") };
+           // NoExt ne = new NoExt();
+           // ne.Name = "hello";
+           // ne.Address = "here";
+           // ne.Age= 10;
+           // ne.dic = new Dictionary<string, class1>();
+           // ne.dic.Add("hello", new class1("asda","asdas",Guid.NewGuid()));
+           // ne.objs = new baseclass[] { new class1("a","1",Guid.NewGuid()), new class2("b","2","desc") };
 
-            //fastJSON.JSON.Instance.UseSerializerExtension = false;
-            //fastJSON.JSON.Instance.UseFastGuid = false;
-            byte[] str = fastBinaryJSON.BJSON.Instance.ToBJSON(ne);
-            object dic = fastBinaryJSON.BJSON.Instance.Parse(str);
-            object oo = fastBinaryJSON.BJSON.Instance.ToObject<NoExt>(str);//<NoExt>(str);
+           // //fastJSON.JSON.Instance.UseSerializerExtension = false;
+           // //fastJSON.JSON.Instance.UseFastGuid = false;
+           // byte[] str = fastBinaryJSON.BJSON.Instance.ToBJSON(ne);
+           // object dic = fastBinaryJSON.BJSON.Instance.Parse(str);
+           // object oo = fastBinaryJSON.BJSON.Instance.ToObject<NoExt>(str);//<NoExt>(str);
 
             Console.WriteLine(".net version = " + Environment.Version);
             Console.WriteLine("press key : (E)xotic ");
-            if (Console.ReadKey().Key == ConsoleKey.E)
-                exotic = true;
+            //if (Console.ReadKey().Key == ConsoleKey.E)
+            //    exotic = true;
 
             ds = CreateDataset();
             Console.WriteLine("-dataset");
@@ -109,15 +109,15 @@ namespace consoletest
             //bin_serialize();
             fastjson_serialize();
             //bin_deserialize();
-            fastjson_deserialize();
+            //fastjson_deserialize();
 
-            dsser = true;
-            Console.WriteLine();
-            Console.WriteLine("+dataset");
-            //bin_serialize();
-            fastjson_serialize();
-            //bin_deserialize();
-            fastjson_deserialize();
+            //dsser = true;
+            //Console.WriteLine();
+            //Console.WriteLine("+dataset");
+            ////bin_serialize();
+            //fastjson_serialize();
+            ////bin_deserialize();
+            //fastjson_deserialize();
 
             #region [ other tests]
 
