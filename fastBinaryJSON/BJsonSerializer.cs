@@ -394,7 +394,6 @@ namespace fastBinaryJSON
                 if (_TypesWritten == false)
                 {
                     _output.WriteByte(TOKENS.DOC_START);
-                    _output.Flush();
                     _before = _output;
                     _output = new MemoryStream();
                 }
