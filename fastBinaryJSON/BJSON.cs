@@ -15,7 +15,7 @@ using System.Text;
 
 namespace fastBinaryJSON
 {
-    public class TOKENS
+    public sealed class TOKENS
     {
         public const byte DOC_START = 1;
         public const byte DOC_END = 2;
@@ -48,7 +48,7 @@ namespace fastBinaryJSON
     //public delegate string Serialize(object data);
     //public delegate object Deserialize(string data);
 
-    public class BJSONParameters
+    public sealed class BJSONParameters
     {
         /// <summary> 
         /// Optimize the schema for Datasets (default = True)
@@ -78,9 +78,17 @@ namespace fastBinaryJSON
         /// 
         /// </summary>
         public bool EnableAnonymousTypes = false;
+
+        public void FixValues()
+        {
+            if (UseExtensions == false) // disable conflicting params
+            {
+                UsingGlobalTypes = false;
+            }
+        }
     }
 
-    public class BJSON
+    public sealed class BJSON
     {
         public readonly static BJSON Instance = new BJSON();
 
@@ -101,7 +109,10 @@ namespace fastBinaryJSON
         public byte[] ToBJSON(object obj, BJSONParameters param)
         {
             Reflection.Instance.ShowReadOnlyProperties = param.ShowReadOnlyProperties;
+            param.FixValues();
             Type t = null;
+            if (obj == null)
+                return new byte[] {TOKENS.NULL};
             if (obj.GetType().IsGenericType)
                 t = obj.GetType().GetGenericTypeDefinition();
             if (t == typeof(Dictionary<,>) || t == typeof(List<>))
@@ -113,6 +124,7 @@ namespace fastBinaryJSON
         public object Parse(byte[] json)
         {
             _params = Parameters;
+            _params.FixValues();
             _globalTypes = _params.UsingGlobalTypes;
             Reflection.Instance.ShowReadOnlyProperties = _params.ShowReadOnlyProperties;
             return new BJsonParser(json).Decode();
@@ -131,6 +143,7 @@ namespace fastBinaryJSON
         public object ToObject(byte[] json, Type type)
         {
             _params = Parameters;
+            _params.FixValues();
             Type t = null;
             if (type != null && type.IsGenericType)
                 t = type.GetGenericTypeDefinition();
@@ -165,6 +178,7 @@ namespace fastBinaryJSON
         public object FillObject(object input, byte[] json)
         {
             _params = Parameters;
+            _params.FixValues();
             Reflection.Instance.ShowReadOnlyProperties = _params.ShowReadOnlyProperties;
             Dictionary<string, object> ht = new BJsonParser(json).Decode() as Dictionary<string, object>;
             if (ht == null) return null;

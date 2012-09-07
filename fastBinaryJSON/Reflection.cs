@@ -8,14 +8,14 @@ using System.Data;
 
 namespace fastBinaryJSON
 {
-    internal class Getters
+    internal sealed class Getters
     {
         public string Name;
         public Reflection.GenericGetter Getter;
         public Type propertyType;
     }
 
-    internal class Reflection
+    internal sealed class Reflection
     {
         public readonly static Reflection Instance = new Reflection();
         private Reflection()

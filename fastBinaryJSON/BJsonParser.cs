@@ -6,7 +6,7 @@ using System.Text;
 
 namespace fastBinaryJSON
 {
-    internal class BJsonParser
+    internal sealed class BJsonParser
     {
         readonly byte[] json;
         int index;

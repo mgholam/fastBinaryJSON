@@ -12,7 +12,7 @@ using System.Text;
 
 namespace fastBinaryJSON
 {
-    internal class BJSONSerializer
+    internal sealed class BJSONSerializer
     {
         private MemoryStream _output = new MemoryStream();
         private MemoryStream _before = new MemoryStream();
@@ -427,15 +427,19 @@ namespace fastBinaryJSON
             }
 
             List<Getters> g = Reflection.Instance.GetGetters(t);
+            int i = g.Count;
             foreach (var p in g)
             {
-                if (append)
+                i--;
+                if (append && i>0)
                     WriteComma();
                 var o = p.Getter(obj);
                 if ((o == null || o is DBNull) && _params.SerializeNulls == false)
                     append = false;
                 else
                 {
+                    if (i == 0) // last non null
+                        WriteComma();
                     WritePair(p.Name, o);
                     append = true;
                 }

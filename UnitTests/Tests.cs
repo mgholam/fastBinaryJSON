@@ -229,6 +229,11 @@ namespace UnitTests
             }
             return ds;
         }
+
+        public class RetNestedclass
+        {
+            public Retclass Nested { get; set; }
+        }
         #endregion
 
         [Test]
@@ -557,6 +562,26 @@ namespace UnitTests
                 Console.Write("\t" + DateTime.Now.Subtract(st).TotalMilliseconds);
             }
             Console.WriteLine("\tAVG = " + t / tcount);
+        }
+
+        [Test]
+        public static void List_NestedRetClass()
+        {
+            List<RetNestedclass> r = new List<RetNestedclass>();
+            r.Add(new RetNestedclass { Nested = new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now } });
+            r.Add(new RetNestedclass { Nested = new Retclass { Field1 = "222", Field2 = 3, date = DateTime.Now } });
+            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
+            var o = fastBinaryJSON.BJSON.Instance.ToObject<List<RetNestedclass>>(s);
+            Assert.AreEqual(2, o.Count);
+        }
+
+        [Test]
+        public static void NullTest()
+        {
+            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(null);
+            Assert.AreEqual(s[0], fastBinaryJSON.TOKENS.NULL);
+            var o = fastBinaryJSON.BJSON.Instance.ToObject(s);
+            Assert.AreEqual(null, o);
         }
     }
 }

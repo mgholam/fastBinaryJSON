@@ -4,7 +4,7 @@ using System.Text;
 
 namespace fastBinaryJSON
 {
-    internal class SafeDictionary<TKey, TValue>
+    internal sealed class SafeDictionary<TKey, TValue>
     {
         private readonly object _Padlock = new object();
         private readonly Dictionary<TKey, TValue> _Dictionary = new Dictionary<TKey, TValue>();
