@@ -583,5 +583,14 @@ namespace UnitTests
             var o = fastBinaryJSON.BJSON.Instance.ToObject(s);
             Assert.AreEqual(null, o);
         }
+
+        [Test]
+        public static void ZeroArray()
+        {
+            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(new object[] { });
+            var o = fastBinaryJSON.BJSON.Instance.ToObject(s);
+            var a = o as object[];
+            Assert.AreEqual(0, a.Length);
+        }
     }
 }

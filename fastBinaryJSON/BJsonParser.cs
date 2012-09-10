@@ -61,16 +61,19 @@ namespace fastBinaryJSON
         private List<object> ParseArray()
         {
             List<object> array = new List<object>();
-   
+
             bool breakparse = false;
             while (!breakparse)
             {
                 object o = ParseValue(out breakparse);
+                byte t = 0;
                 if (breakparse == false)
                 {
                     array.Add(o);
+                    t = GetToken();
                 }
-                byte t = GetToken();
+                else t = (byte)o;
+
                 if (t == TOKENS.COMMA)
                     continue;
                 if (t == TOKENS.ARRAY_END)

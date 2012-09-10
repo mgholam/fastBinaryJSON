@@ -34,3 +34,7 @@ v1.3.2
 - added sealed keyword to classes
 - bug fix SerializeNullValues=false and an extra comma at the end
 - FillObject nested types
+
+v1.3.3
+------
+- bug fix deserialize zero length arrays
