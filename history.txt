@@ -38,3 +38,4 @@ v1.3.2
 v1.3.3
 ------
 - bug fix deserialize zero length arrays
+- test for German locale numbers

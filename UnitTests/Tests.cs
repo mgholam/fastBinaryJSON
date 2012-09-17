@@ -4,6 +4,7 @@ using System.Text;
 using NUnit.Framework;
 using System.Data;
 using System.Collections;
+using System.Threading;
 
 namespace UnitTests
 {
@@ -591,6 +592,18 @@ namespace UnitTests
             var o = fastBinaryJSON.BJSON.Instance.ToObject(s);
             var a = o as object[];
             Assert.AreEqual(0, a.Length);
+        }
+
+        [Test]
+        public static void GermanNumbers()
+        {
+            Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("de");
+            decimal d = 3.141592654M;
+            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(d);
+            var o = fastBinaryJSON.BJSON.Instance.ToObject(s);
+            Assert.AreEqual(d, (decimal)o);
+
+            Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en");
         }
     }
 }
