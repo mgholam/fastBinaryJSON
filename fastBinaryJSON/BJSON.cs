@@ -90,7 +90,14 @@ namespace fastBinaryJSON
 
     public sealed class BJSON
     {
-        public readonly static BJSON Instance = new BJSON();
+        //public readonly static BJSON Instance = new BJSON();
+        [ThreadStatic]
+        private static BJSON _instance;
+
+        public static BJSON Instance
+        {
+            get { return _instance ?? (_instance = new BJSON()); }
+        }
 
         private BJSON()
         {

@@ -427,7 +427,8 @@ namespace fastBinaryJSON
             }
 
             List<Getters> g = Reflection.Instance.GetGetters(t);
-            int i = g.Count;
+            int c = g.Count;
+            int i = c;
             foreach (var p in g)
             {
                 i--;
@@ -438,7 +439,7 @@ namespace fastBinaryJSON
                     append = false;
                 else
                 {
-                    if (i == 0) // last non null
+                    if (i == 0 && c>1) // last non null
                         WriteComma();
                     WritePair(p.Name, o);
                     append = true;
@@ -447,7 +448,6 @@ namespace fastBinaryJSON
             _current_depth--;
             _output.WriteByte(TOKENS.DOC_END);
             _current_depth--;
-
         }
 
         private void WritePairFast(string name, string value)
