@@ -429,6 +429,8 @@ namespace fastBinaryJSON
             List<Getters> g = Reflection.Instance.GetGetters(t);
             int c = g.Count;
             int i = c;
+            if (_params.UseExtensions)
+                i++;
             foreach (var p in g)
             {
                 i--;

@@ -45,3 +45,8 @@ v1.3.4
 - singleton uses ThreadStatic for concurrency (thanks to Philip Jander) 
 - bug fix extra comma in the output when only 1 property in the object (thanks to Philip Jander) 
 
+v1.3.5
+------
+- added support for root level DataSet and DataTable deserialize (you have to do ToObject<DataSet>(...) )
+- added dataset tests
+- added MonoDroid project

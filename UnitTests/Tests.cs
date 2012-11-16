@@ -336,29 +336,23 @@ namespace UnitTests
             Assert.AreEqual(o, "hello");
         }
 
-        [Test]
-        public static void SubClasses()
-        {
+        //[Test]
+        //public static void SubClasses()
+        //{
 
-        }
+        //}
 
-        [Test]
-        public static void CasttoSomthing()
-        {
+        //[Test]
+        //public static void CasttoSomthing()
+        //{
 
-        }
+        //}
 
-        [Test]
-        public static void IgnoreCase()
-        {
+        //[Test]
+        //public static void IgnoreCase()
+        //{
 
-        }
-
-        [Test]
-        public static void Datasets()
-        {
-
-        }
+        //}
 
         [Test]
         public static void Perftest()
@@ -605,5 +599,41 @@ namespace UnitTests
 
             Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en");
         }
+		
+	    public class arrayclass
+        {
+            public int[] ints { get; set; }
+            public string[] strs;
+        }
+        [Test]
+        public static void ArrayTest()
+        {
+            arrayclass a = new arrayclass();
+            a.ints = new int[] { 3, 1, 4 };
+            a.strs = new string[] {"a","b","c"};
+            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(a);
+            var o = fastBinaryJSON.BJSON.Instance.ToObject(s);
+        }
+		
+		[Test]
+        public static void Datasets()
+        {
+            var ds = CreateDataset();
+
+            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(ds);
+
+            var o = fastBinaryJSON.BJSON.Instance.ToObject<DataSet>(s);
+
+            Assert.AreEqual(typeof(DataSet), o.GetType());
+            Assert.IsNotNull(o);
+            Assert.AreEqual(2, o.Tables.Count);
+
+
+            s = fastBinaryJSON.BJSON.Instance.ToBJSON(ds.Tables[0]);
+            var oo = fastBinaryJSON.BJSON.Instance.ToObject<DataTable>(s);
+            Assert.IsNotNull(oo);
+            Assert.AreEqual(typeof(DataTable), oo.GetType());
+            Assert.AreEqual(100, oo.Rows.Count);
+        }		
     }
 }
