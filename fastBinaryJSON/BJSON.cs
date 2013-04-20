@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-#if SILVERLIGHT
-
-#else
+#if !SILVERLIGHT
 using System.Data;
 #endif
 using System.Globalization;
@@ -45,8 +43,8 @@ namespace fastBinaryJSON
         public const byte UNICODE_STRING = 26;
     }
 
-    //public delegate string Serialize(object data);
-    //public delegate object Deserialize(string data);
+    public delegate string Serialize(object data);
+    public delegate object Deserialize(string data);
 
     public sealed class BJSONParameters
     {
@@ -78,6 +76,8 @@ namespace fastBinaryJSON
         /// 
         /// </summary>
         public bool EnableAnonymousTypes = false;
+
+        public bool UseUTCtimes = false;
 
         public void FixValues()
         {
@@ -119,7 +119,7 @@ namespace fastBinaryJSON
             param.FixValues();
             Type t = null;
             if (obj == null)
-                return new byte[] {TOKENS.NULL};
+                return new byte[] { TOKENS.NULL };
             if (obj.GetType().IsGenericType)
                 t = obj.GetType().GetGenericTypeDefinition();
             if (t == typeof(Dictionary<,>) || t == typeof(List<>))
@@ -134,7 +134,7 @@ namespace fastBinaryJSON
             _params.FixValues();
             _globalTypes = _params.UsingGlobalTypes;
             Reflection.Instance.ShowReadOnlyProperties = _params.ShowReadOnlyProperties;
-            return new BJsonParser(json).Decode();
+            return new BJsonParser(json, _params.UseUTCtimes).Decode();
         }
 
         public T ToObject<T>(byte[] json)
@@ -159,8 +159,8 @@ namespace fastBinaryJSON
             _globalTypes = _params.UsingGlobalTypes;
 
             Reflection.Instance.ShowReadOnlyProperties = _params.ShowReadOnlyProperties;
-            
-            var o = new BJsonParser(json).Decode();
+
+            var o = new BJsonParser(json, _params.UseUTCtimes).Decode();
 #if !SILVERLIGHT
             if (type != null && type == typeof(DataSet))
                 return CreateDataset(o as Dictionary<string, object>, null);
@@ -186,10 +186,7 @@ namespace fastBinaryJSON
                 else
                     return (o as List<object>).ToArray();
             }
-			            
-            //if (type!=null && o.GetType() != type)
-            //    return ChangeType(o, type);
-			
+
             return o;
         }
 
@@ -198,12 +195,12 @@ namespace fastBinaryJSON
             _params = Parameters;
             _params.FixValues();
             Reflection.Instance.ShowReadOnlyProperties = _params.ShowReadOnlyProperties;
-            Dictionary<string, object> ht = new BJsonParser(json).Decode() as Dictionary<string, object>;
+            Dictionary<string, object> ht = new BJsonParser(json, _params.UseUTCtimes).Decode() as Dictionary<string, object>;
             if (ht == null) return null;
             return ParseDictionary(ht, null, input.GetType(), input);
         }
 
-#if CUSTOMTYPE
+
         internal SafeDictionary<Type, Serialize> _customSerializer = new SafeDictionary<Type, Serialize>();
         internal SafeDictionary<Type, Deserialize> _customDeserializer = new SafeDictionary<Type, Deserialize>();
 
@@ -223,35 +220,53 @@ namespace fastBinaryJSON
             Serialize s;
             return _customSerializer.TryGetValue(t, out s);
         }
-#endif
+
 
         #region [   BJSON specific reflection   ]
+        internal enum myPropInfoType
+        {
+            Int,
+            Long,
+            String,
+            Bool,
+            DateTime,
+            Enum,
+            Guid,
+
+            Array,
+            ByteArray,
+            Dictionary,
+            StringDictionary,
+
+            Hashtable,
+            DataSet,
+            DataTable,
+
+            Custom,
+            Unknown,
+        }
+
+        [Flags]
+        internal enum myPropInfoFlags
+        {
+            Filled = 1 << 0,
+            CanWrite = 1 << 1
+        }
+
         internal struct myPropInfo
         {
-            public bool filled;
             public Type pt;
             public Type bt;
-            public bool isDictionary;
-            public bool isValueType;
-            public bool isGenericType;
-            public bool isArray;
-            public bool isByteArray;
-#if !SILVERLIGHT
-            public bool isDataSet;
-            public bool isDataTable;
-            public bool isHashtable;
-#endif
             public Reflection.GenericSetter setter;
-            public bool isEnum;
-            public Type[] GenericTypes;
-            public bool isClass;
             public Reflection.GenericGetter getter;
-            public bool isStringDictionary;
+            public Type[] GenericTypes;
             public string Name;
-#if CUSTOMTYPE
-            public bool isCustomType;
-#endif
-            public bool CanWrite;
+            public myPropInfoType Type;
+            public myPropInfoFlags Flags;
+
+            public bool IsClass;
+            public bool IsValueType;
+            public bool IsGenericType;
         }
 
         SafeDictionary<string, SafeDictionary<string, myPropInfo>> _propertycache = new SafeDictionary<string, SafeDictionary<string, myPropInfo>>();
@@ -269,7 +284,7 @@ namespace fastBinaryJSON
                 foreach (PropertyInfo p in pr)
                 {
                     myPropInfo d = CreateMyProp(p.PropertyType, p.Name);
-                    d.CanWrite = p.CanWrite;
+                    d.Flags |= myPropInfoFlags.CanWrite;
                     d.setter = Reflection.CreateSetMethod(type, p);
                     d.getter = Reflection.CreateGetMethod(type, p);
                     sd.Add(p.Name, d);
@@ -291,36 +306,48 @@ namespace fastBinaryJSON
         private myPropInfo CreateMyProp(Type t, string name)
         {
             myPropInfo d = new myPropInfo();
-            d.filled = true;
-            d.CanWrite = true;
+            myPropInfoType d_type = myPropInfoType.Unknown;
+            myPropInfoFlags d_flags = myPropInfoFlags.Filled | myPropInfoFlags.CanWrite;
+
+
+            if (t.IsEnum) d_type = myPropInfoType.Enum;
+            else if (t.IsArray)
+            {
+                d.bt = t.GetElementType();
+                if (t == typeof(byte[]))
+                    d_type = myPropInfoType.ByteArray;
+                else
+                    d_type = myPropInfoType.Array;
+            }
+            else if (t.Name.Contains("Dictionary"))
+            {
+                d.GenericTypes = t.GetGenericArguments();
+                if (d.GenericTypes.Length > 0 && d.GenericTypes[0] == typeof(string))
+                    d_type = myPropInfoType.StringDictionary;
+                else
+                    d_type = myPropInfoType.Dictionary;
+            }
+#if !SILVERLIGHT
+            else if (t == typeof(Hashtable)) d_type = myPropInfoType.Hashtable;
+            else if (t == typeof(DataSet)) d_type = myPropInfoType.DataSet;
+            else if (t == typeof(DataTable)) d_type = myPropInfoType.DataTable;
+#endif
+            else if (IsTypeRegistered(t))								
+                d_type = myPropInfoType.Custom;
+
+            d.IsClass = t.IsClass;
+            d.IsValueType = t.IsValueType;
+            if (t.IsGenericType)
+            {
+                d.IsGenericType = true;
+                d.bt = t.GetGenericArguments()[0];
+            }
+
             d.pt = t;
             d.Name = name;
-            d.isDictionary = t.Name.Contains("Dictionary");
-            if (d.isDictionary)
-                d.GenericTypes = t.GetGenericArguments();
-            d.isValueType = t.IsValueType;
-            d.isGenericType = t.IsGenericType;
-            d.isArray = t.IsArray;
-            if (d.isArray)
-                d.bt = t.GetElementType();
-            if (d.isGenericType)
-                d.bt = t.GetGenericArguments()[0];
-            d.isByteArray = t == typeof(byte[]);
-#if !SILVERLIGHT
-            d.isHashtable = t == typeof(Hashtable);
-            d.isDataSet = t == typeof(DataSet);
-            d.isDataTable = t == typeof(DataTable);
-#endif
-            d.isEnum = t.IsEnum;
-            d.isClass = t.IsClass;
+            d.Type = d_type;
+            d.Flags = d_flags;
 
-            if (d.isDictionary && d.GenericTypes.Length > 0 && d.GenericTypes[0] == typeof(string))
-                d.isStringDictionary = true;
-
-#if CUSTOMTYPE
-            if (IsTypeRegistered(t))
-                d.isCustomType = true;
-#endif
             return d;
         }
         #endregion
@@ -336,7 +363,7 @@ namespace fastBinaryJSON
                 if (k is Dictionary<string, object>)
                     v = ParseDictionary(k as Dictionary<string, object>, null, gtypes[0], null);
                 else
-                    v = k;// ChangeType(k, gtypes[0]);
+                    v = k;
 
                 o.Add(v);
             }
@@ -354,13 +381,13 @@ namespace fastBinaryJSON
                 {
                     _globalTypes = false;
                     object v;
-                    object k = kv.Key;// ChangeType(kv.Key, gtypes[0]);
+                    object k = kv.Key;
                     if (kv.Value is Dictionary<string, object>)
                         v = ParseDictionary(kv.Value as Dictionary<string, object>, null, gtypes[1], null);
                     else if (kv.Value is List<object>)
                         v = CreateArray(kv.Value as List<object>, typeof(object), typeof(object), null);
                     else
-                        v = kv.Value;// ChangeType(kv.Value, gtypes[1]);
+                        v = kv.Value;
                     o.Add(k, v);
                 }
 
@@ -396,7 +423,7 @@ namespace fastBinaryJSON
 #endif
             if (found)
             {
-                if (_globalTypes && globaltypes!=null)
+                if (_globalTypes && globaltypes != null)
                 {
                     object tname = "";
                     if (globaltypes.TryGetValue((string)tn, out tname))
@@ -418,7 +445,7 @@ namespace fastBinaryJSON
                 myPropInfo pi;
                 if (props.TryGetValue(name, out pi) == false)
                     continue;
-                if (pi.filled == true)
+                if ((pi.Flags & (myPropInfoFlags.Filled | myPropInfoFlags.CanWrite)) != 0) 
                 {
                     object v = d[name];
 
@@ -426,60 +453,59 @@ namespace fastBinaryJSON
                     {
                         object oset = v;
 
-#if CUSTOMTYPE
-                        else if (pi.isCustomType)
-                            oset = CreateCustom((string)v, pi.pt);
-#endif
-
-                        if (pi.isGenericType && pi.isValueType == false && pi.isDictionary == false)
-                            oset = CreateGenericList((List<object>)v, pi.pt, pi.bt, globaltypes);
-
-                        else if (pi.isByteArray)
-                            oset = v;
-
-                        else if (pi.isArray && pi.isValueType == false)
-                            oset = CreateArray((List<object>)v, pi.pt, pi.bt, globaltypes);
-
-
+                        switch (pi.Type)
+                        {
 #if !SILVERLIGHT
-                        else if (pi.isDataSet)
-                            oset = CreateDataset((Dictionary<string, object>)v, globaltypes);
+                            case myPropInfoType.DataSet:
+                                oset = CreateDataset((Dictionary<string, object>)v, globaltypes); 
+                                break;
+                            case myPropInfoType.DataTable:
+                                oset = CreateDataTable((Dictionary<string, object>)v, globaltypes); 
+                                break;
+#endif                           
+                            case myPropInfoType.Custom :
+                                oset = CreateCustom((string)v, pi.pt);
+                                break;
+                            case myPropInfoType.Enum:
+                                oset = CreateEnum(pi.pt, (string)v); 
+                                break;
+                            case myPropInfoType.StringDictionary:
+                                oset = CreateStringKeyDictionary((Dictionary<string, object>)v, pi.pt, pi.GenericTypes, globaltypes); 
+                                break;
+                            case myPropInfoType.Hashtable:
+                            case myPropInfoType.Dictionary:
+                                oset = CreateDictionary((List<object>)v, pi.pt, pi.GenericTypes, globaltypes);
+                                break;
+                            case myPropInfoType.Array:
+                                oset = CreateArray((List<object>)v, pi.pt, pi.bt, globaltypes); 
+                                break;
+                            default:
+                                {
+                                    if (pi.IsGenericType && pi.IsValueType == false)
+                                        oset = CreateGenericList((List<object>)v, pi.pt, pi.bt, globaltypes);
+                                    else if (pi.IsClass && v is Dictionary<string, object>)
+                                        oset = ParseDictionary((Dictionary<string, object>)v, globaltypes, pi.pt, input);
 
-                        else if (pi.isDataTable)
-                            oset = this.CreateDataTable((Dictionary<string, object>)v, globaltypes);
-#endif
+                                    else if (v is List<object>)
+                                        oset = CreateArray((List<object>)v, pi.pt, typeof(object), globaltypes);
+                                    break;
+                                }
+                        }
 
-                        else if (pi.isStringDictionary)
-                            oset = CreateStringKeyDictionary((Dictionary<string, object>)v, pi.pt, pi.GenericTypes, globaltypes);
-
-                        else if (pi.isDictionary || pi.isHashtable)
-                            oset = CreateDictionary((List<object>)v, pi.pt, pi.GenericTypes, globaltypes);
-
-                        else if (pi.isEnum)
-                            oset = CreateEnum(pi.pt, (string)v);
-
-                        else if (pi.isClass && v is Dictionary<string, object>)
-                            oset = ParseDictionary((Dictionary<string, object>)v, globaltypes, pi.pt, input);
-
-                        else if (v is List<object>)
-                            oset = CreateArray((List<object>)v, pi.pt, typeof(object), globaltypes);
-
-                        if (pi.CanWrite)
-                            o = pi.setter(o, oset);
+                        o = pi.setter(o, oset);
                     }
                 }
             }
             return o;
         }
 
-#if CUSTOMTYPE
+
         private object CreateCustom(string v, Type type)
         {
             Deserialize d;
             _customDeserializer.TryGetValue(type, out d);
             return d(v);
         }
-#endif
 
         private object CreateEnum(Type pt, string v)
         {

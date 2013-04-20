@@ -134,10 +134,9 @@ namespace fastBinaryJSON
             else if (obj is Enum)
                 WriteEnum((Enum)obj);
 
-#if CUSTOMTYPE
-            else if (JSON.Instance.IsTypeRegistered(obj.GetType()))
+            else if (BJSON.Instance.IsTypeRegistered(obj.GetType()))
                 WriteCustom(obj);
-#endif
+
             else
                 WriteObject(obj);
         }
@@ -228,14 +227,14 @@ namespace fastBinaryJSON
             _output.WriteByte(TOKENS.NULL);
         }
 
-#if CUSTOMTYPE
+
         private void WriteCustom(object obj)
         {
             Serialize s;
-            JSON.Instance._customSerializer.TryGetValue(obj.GetType(), out s);
-            WriteStringFast(s(obj));
+            BJSON.Instance._customSerializer.TryGetValue(obj.GetType(), out s);
+            WriteString(s(obj));
         }
-#endif
+
         private void WriteColon()
         {
             _output.WriteByte(TOKENS.COLON);
@@ -266,7 +265,8 @@ namespace fastBinaryJSON
         private void WriteDateTime(DateTime dateTime)
         {
             DateTime dt = dateTime;
-            dt = dateTime.ToUniversalTime();
+            if (_params.UseUTCtimes)
+                dt = dateTime.ToUniversalTime();
 
             _output.WriteByte(TOKENS.DATETIME);
             byte[] b = Helper.GetBytes(dt.Ticks, false);
@@ -427,21 +427,17 @@ namespace fastBinaryJSON
             }
 
             List<Getters> g = Reflection.Instance.GetGetters(t);
-            int c = g.Count;
-            int i = c;
-            if (_params.UseExtensions)
-                i++;
+
             foreach (var p in g)
             {
-                i--;
-                if (append && i>0)
-                    WriteComma();
                 var o = p.Getter(obj);
                 if ((o == null || o is DBNull) && _params.SerializeNulls == false)
-                    append = false;
+                {
+                    
+                }
                 else
                 {
-                    if (i == 0 && c>1) // last non null
+                    if (append)
                         WriteComma();
                     WritePair(p.Name, o);
                     append = true;

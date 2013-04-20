@@ -50,3 +50,21 @@ v1.3.5
 - added support for root level DataSet and DataTable deserialize (you have to do ToObject<DataSet>(...) )
 - added dataset tests
 - added MonoDroid project
+
+v1.3.6
+-------
+- bug fix comma and nulls
+- UTC parameter for controlling dates
+- unified reflection code with Silverlight4
+- locks in SafeDictionary
+
+
+v1.3.7
+------
+- customtype is now builtin
+- added UseUTCTimes property for datetime 
+- switched to properttype enum instead of booleans
+- using switch instead of linked if statements
+- unified DynamicMethod between silverlight and full .net
+- SafeDictionary lock fixes
+

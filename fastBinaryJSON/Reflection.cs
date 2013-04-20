@@ -4,7 +4,7 @@ using System.Text;
 using System.Reflection.Emit;
 using System.Reflection;
 using System.Collections;
-using System.Data;
+
 
 namespace fastBinaryJSON
 {
@@ -80,13 +80,8 @@ namespace fastBinaryJSON
                         _constrcache.Add(objtype, c);
                     }
                     else // structs
-                    {     
-                        DynamicMethod dynMethod = new DynamicMethod("_",
-                            MethodAttributes.Public | MethodAttributes.Static,
-                            CallingConventions.Standard,
-                            typeof(object),
-                            null,
-                            objtype, false);
+                    {
+                        DynamicMethod dynMethod = new DynamicMethod("_", typeof(object), null);
                         ILGenerator ilGen = dynMethod.GetILGenerator();
                         var lv = ilGen.DeclareLocal(objtype);
                         ilGen.Emit(OpCodes.Ldloca_S, lv);
@@ -112,7 +107,8 @@ namespace fastBinaryJSON
             Type[] arguments = new Type[2];
             arguments[0] = arguments[1] = typeof(object);
 
-            DynamicMethod dynamicSet = new DynamicMethod("_", typeof(object), arguments, type, true);
+            DynamicMethod dynamicSet = new DynamicMethod("_", typeof(object), arguments, type);
+
             ILGenerator il = dynamicSet.GetILGenerator();
 
             if (!type.IsClass) // structs
@@ -154,7 +150,7 @@ namespace fastBinaryJSON
             Type[] arguments = new Type[2];
             arguments[0] = arguments[1] = typeof(object);
 
-            DynamicMethod setter = new DynamicMethod("_", typeof(object), arguments, type);
+            DynamicMethod setter = new DynamicMethod("_", typeof(object), arguments);
             ILGenerator il = setter.GetILGenerator();
 
             if (!type.IsClass) // structs
@@ -193,7 +189,8 @@ namespace fastBinaryJSON
 
         internal static GenericGetter CreateGetField(Type type, FieldInfo fieldInfo)
         {
-            DynamicMethod dynamicGet = new DynamicMethod("_", typeof(object), new Type[] { typeof(object) }, type, true);
+            DynamicMethod dynamicGet = new DynamicMethod("_", typeof(object), new Type[] { typeof(object) }, type);
+
             ILGenerator il = dynamicGet.GetILGenerator();
 
             if (!type.IsClass) // structs
@@ -226,12 +223,10 @@ namespace fastBinaryJSON
             if (getMethod == null)
                 return null;
 
-            Type[] arguments = new Type[1];
-            arguments[0] = typeof(object);
+            DynamicMethod getter = new DynamicMethod("_", typeof(object), new Type[] { typeof(object) }, type);
 
-            DynamicMethod getter = new DynamicMethod("_", typeof(object), arguments, type);
             ILGenerator il = getter.GetILGenerator();
-            
+
             if (!type.IsClass) // structs
             {
                 var lv = il.DeclareLocal(type);
