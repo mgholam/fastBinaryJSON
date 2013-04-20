@@ -30,6 +30,8 @@ namespace fastBinaryJSON
             }
         }
 
+        public int Count { get { lock (_Padlock) return _Dictionary.Count;}}
+
         public void Add(TKey key, TValue value)
         {
             lock (_Padlock)

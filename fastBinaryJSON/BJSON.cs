@@ -217,6 +217,8 @@ namespace fastBinaryJSON
 
         internal bool IsTypeRegistered(Type t)
         {
+            if (_customSerializer.Count == 0) 
+                return false;
             Serialize s;
             return _customSerializer.TryGetValue(t, out s);
         }
@@ -237,11 +239,11 @@ namespace fastBinaryJSON
             ByteArray,
             Dictionary,
             StringDictionary,
-
+#if !SILVERLIGHT
             Hashtable,
             DataSet,
             DataTable,
-
+#endif
             Custom,
             Unknown,
         }
