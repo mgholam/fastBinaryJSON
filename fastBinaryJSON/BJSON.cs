@@ -82,15 +82,15 @@ namespace fastBinaryJSON
         public void FixValues()
         {
             if (UseExtensions == false) // disable conflicting params
-            {
                 UsingGlobalTypes = false;
-            }
+            
+            if (EnableAnonymousTypes)
+                ShowReadOnlyProperties = true;
         }
     }
 
     public sealed class BJSON
     {
-        //public readonly static BJSON Instance = new BJSON();
         [ThreadStatic]
         private static BJSON _instance;
 
@@ -115,7 +115,6 @@ namespace fastBinaryJSON
 
         public byte[] ToBJSON(object obj, BJSONParameters param)
         {
-            Reflection.Instance.ShowReadOnlyProperties = param.ShowReadOnlyProperties;
             param.FixValues();
             Type t = null;
             if (obj == null)
@@ -124,6 +123,9 @@ namespace fastBinaryJSON
                 t = obj.GetType().GetGenericTypeDefinition();
             if (t == typeof(Dictionary<,>) || t == typeof(List<>))
                 param.UsingGlobalTypes = false;
+            // FEATURE : enable extensions when you can deserialize anon types
+            if (param.EnableAnonymousTypes) { param.UseExtensions = false; param.UsingGlobalTypes = false; }
+
             _globalTypes = param.UsingGlobalTypes;
             return new BJSONSerializer(param).ConvertToBJSON(obj);
         }
@@ -133,8 +135,12 @@ namespace fastBinaryJSON
             _params = Parameters;
             _params.FixValues();
             _globalTypes = _params.UsingGlobalTypes;
-            Reflection.Instance.ShowReadOnlyProperties = _params.ShowReadOnlyProperties;
             return new BJsonParser(json, _params.UseUTCtimes).Decode();
+        }
+
+        public dynamic ToDynamic(byte[] json)
+        {
+            return new DynamicJson(json);
         }
 
         public T ToObject<T>(byte[] json)
@@ -158,8 +164,6 @@ namespace fastBinaryJSON
                 _params.UsingGlobalTypes = false;
             _globalTypes = _params.UsingGlobalTypes;
 
-            Reflection.Instance.ShowReadOnlyProperties = _params.ShowReadOnlyProperties;
-
             var o = new BJsonParser(json, _params.UseUTCtimes).Decode();
 #if !SILVERLIGHT
             if (type != null && type == typeof(DataSet))
@@ -170,7 +174,7 @@ namespace fastBinaryJSON
 #endif
             if (o is IDictionary)
             {
-                if (type != null && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)) // deserialize a dictionary
+                if (type != null && t == typeof(Dictionary<,>)) // deserialize a dictionary
                     return RootDictionary(o, type);
                 else // deserialize an object
                     return ParseDictionary(o as Dictionary<string, object>, null, type, null);
@@ -178,10 +182,10 @@ namespace fastBinaryJSON
 
             if (o is List<object>)
             {
-                if (type != null && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)) // kv format
+                if (type != null && t == typeof(Dictionary<,>)) // kv format
                     return RootDictionary(o, type);
 
-                if (type != null && type.GetGenericTypeDefinition() == typeof(List<>)) // deserialize to generic list
+                if (type != null && t == typeof(List<>)) // deserialize to generic list
                     return RootList(o, type);
                 else
                     return (o as List<object>).ToArray();
@@ -194,7 +198,6 @@ namespace fastBinaryJSON
         {
             _params = Parameters;
             _params.FixValues();
-            Reflection.Instance.ShowReadOnlyProperties = _params.ShowReadOnlyProperties;
             Dictionary<string, object> ht = new BJsonParser(json, _params.UseUTCtimes).Decode() as Dictionary<string, object>;
             if (ht == null) return null;
             return ParseDictionary(ht, null, input.GetType(), input);

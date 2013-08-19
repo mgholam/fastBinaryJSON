@@ -520,7 +520,7 @@ namespace UnitTests
         [Test]
         public static void Speed_Test_Deserialize()
         {
-            Console.Write("fastjson deserialize");
+            Console.Write("fastbinaryjson deserialize");
             colclass c = CreateObject();
             double t = 0;
             for (int pp = 0; pp < tcount; pp++)
@@ -541,7 +541,7 @@ namespace UnitTests
         [Test]
         public static void Speed_Test_Serialize()
         {
-            Console.Write("fastjson serialize");
+            Console.Write("fastbinaryjson serialize");
             //fastBinaryJSON.BJSON.Instance.Parameters.UsingGlobalTypes = false;
             colclass c = CreateObject();
             double t = 0;
@@ -634,6 +634,26 @@ namespace UnitTests
             Assert.IsNotNull(oo);
             Assert.AreEqual(typeof(DataTable), oo.GetType());
             Assert.AreEqual(100, oo.Rows.Count);
-        }		
+        }
+
+        [Test]
+        public static void DynamicTest()
+        {
+            var obj = new { Name = "aaaaaa", Age = 10, dob = DateTime.Parse("2000-01-01 00:00:00"), inner = new { prop = 30 } };
+
+            byte[] b = fastBinaryJSON.BJSON.Instance.ToBJSON(
+                obj,
+                new fastBinaryJSON.BJSONParameters { UseExtensions = false, EnableAnonymousTypes= true });
+            dynamic d = fastBinaryJSON.BJSON.Instance.ToDynamic(b);
+            var ss = d.Name;
+            var oo = d.Age;
+            var dob = d.dob;
+            var inp = d.inner.prop;
+
+            Assert.AreEqual("aaaaaa", ss);
+            Assert.AreEqual(10, oo);
+            Assert.AreEqual(30, inp);
+            Assert.AreEqual(DateTime.Parse("2000-01-01 00:00:00"), dob);
+        }
     }
 }

@@ -58,7 +58,6 @@ v1.3.6
 - unified reflection code with Silverlight4
 - locks in SafeDictionary
 
-
 v1.3.7
 ------
 - customtype is now builtin
@@ -68,3 +67,9 @@ v1.3.7
 - unified DynamicMethod between silverlight and full .net
 - SafeDictionary lock fixes
 
+v1.3.8
+------
+- added serialization of static fields and properties
+- fixed disabling extensions in the output
+- fixed serializing anonymous types
+- added support for dynamic objects

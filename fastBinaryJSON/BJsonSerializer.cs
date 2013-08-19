@@ -128,7 +128,7 @@ namespace fastBinaryJSON
             else if (obj is byte[])
                 WriteBytes((byte[])obj);
 
-            else if (obj is Array || obj is IList || obj is ICollection)
+            else if (obj is IEnumerable)// Array || obj is IList || obj is ICollection)
                 WriteArray((IEnumerable)obj);
 
             else if (obj is Enum)
@@ -201,7 +201,7 @@ namespace fastBinaryJSON
 
         private void WriteChar(char p)
         {
-            // FIX : 
+            // TODO : 
             //_output.WriteByte(TOKENS.CHAR);
             //_output.Write(Helper.GetBytes(
             throw new Exception("char not implemented yet");
@@ -288,7 +288,7 @@ namespace fastBinaryJSON
                 m.Info.Add(c.ColumnName);
                 m.Info.Add(c.DataType.ToString());
             }
-            // TODO : serialize relations and constraints here
+            // FEATURE : serialize relations and constraints here
 
             return m;
         }
@@ -310,7 +310,7 @@ namespace fastBinaryJSON
                     m.Info.Add(c.DataType.ToString());
                 }
             }
-            // TODO : serialize relations and constraints here
+            // FEATURE : serialize relations and constraints here
 
             return m;
         }
@@ -408,7 +408,7 @@ namespace fastBinaryJSON
 
             Type t = obj.GetType();
             bool append = false;
-            //if (useExtension)
+            if (_params.UseExtensions)
             {
                 if (_params.UsingGlobalTypes == false)
                     WritePairFast("$type", Reflection.Instance.GetTypeAssemblyName(t));
@@ -426,7 +426,7 @@ namespace fastBinaryJSON
                 append = true;
             }
 
-            List<Getters> g = Reflection.Instance.GetGetters(t);
+            List<Getters> g = Reflection.Instance.GetGetters(t, _params.ShowReadOnlyProperties);
 
             foreach (var p in g)
             {
