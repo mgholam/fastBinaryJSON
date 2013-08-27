@@ -378,6 +378,13 @@ namespace fastBinaryJSON
         private object RootDictionary(object parse, Type type)
         {
             Type[] gtypes = type.GetGenericArguments();
+            Type t1 = null;
+            Type t2 = null;
+            if (gtypes != null)
+            {
+                t1 = gtypes[0];
+                t2 = gtypes[1];
+            }
             if (parse is Dictionary<string, object>)
             {
                 IDictionary o = (IDictionary)Reflection.Instance.FastCreateInstance(type);
@@ -387,12 +394,19 @@ namespace fastBinaryJSON
                     _globalTypes = false;
                     object v;
                     object k = kv.Key;
+                    
                     if (kv.Value is Dictionary<string, object>)
                         v = ParseDictionary(kv.Value as Dictionary<string, object>, null, gtypes[1], null);
-                    else if (kv.Value is List<object>)
-                        v = CreateArray(kv.Value as List<object>, typeof(object), typeof(object), null);
+
+                    else if (gtypes != null && t2.IsArray)
+                        v = CreateArray((List<object>)kv.Value, t2, t2.GetElementType(), null);
+
+                    else if (kv.Value is IList)
+                        v = CreateGenericList((List<object>)kv.Value, t2, t1, null);
+
                     else
                         v = kv.Value;
+
                     o.Add(k, v);
                 }
 
@@ -571,10 +585,19 @@ namespace fastBinaryJSON
             {
                 var key = values.Key;
                 object val = null;
+
                 if (values.Value is Dictionary<string, object>)
                     val = ParseDictionary((Dictionary<string, object>)values.Value, globalTypes, t2, null);
+
+                else if (types != null && t2.IsArray)
+                    val = CreateArray((List<object>)values.Value, t2, t2.GetElementType(), globalTypes);
+
+                else if (values.Value is IList)
+                    val = CreateGenericList((List<object>)values.Value, t2, t1, globalTypes);
+
                 else
                     val = values.Value;
+
                 col.Add(key, val);
             }
 

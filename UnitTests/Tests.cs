@@ -5,6 +5,7 @@ using NUnit.Framework;
 using System.Data;
 using System.Collections;
 using System.Threading;
+using fastBinaryJSON;
 
 namespace UnitTests
 {
@@ -654,6 +655,29 @@ namespace UnitTests
             Assert.AreEqual(10, oo);
             Assert.AreEqual(30, inp);
             Assert.AreEqual(DateTime.Parse("2000-01-01 00:00:00"), dob);
+        }
+
+        public class diclist
+        {
+            public Dictionary<string, List<string>> d;
+        }
+
+        [Test]
+        public static void DictionaryWithListValue()
+        {
+            diclist dd = new diclist();
+            dd.d = new Dictionary<string, List<string>>();
+            dd.d.Add("a", new List<string> { "1", "2", "3" });
+            dd.d.Add("b", new List<string> { "4", "5", "7" });
+            byte[] s = BJSON.Instance.ToBJSON(dd, new BJSONParameters { UseExtensions = false });
+            var o = BJSON.Instance.ToObject<diclist>(s);
+            Assert.AreEqual(3, o.d["a"].Count);
+
+            s = BJSON.Instance.ToBJSON(dd.d, new BJSONParameters { UseExtensions = false });
+            var oo = BJSON.Instance.ToObject<Dictionary<string, List<string>>>(s);
+            Assert.AreEqual(3, oo["a"].Count);
+            var ooo = BJSON.Instance.ToObject<Dictionary<string, string[]>>(s);
+            Assert.AreEqual(3, ooo["b"].Length);
         }
     }
 }

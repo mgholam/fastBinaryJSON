@@ -128,7 +128,7 @@ namespace fastBinaryJSON
             else if (obj is byte[])
                 WriteBytes((byte[])obj);
 
-            else if (obj is IEnumerable)// Array || obj is IList || obj is ICollection)
+            else if (obj is IEnumerable)
                 WriteArray((IEnumerable)obj);
 
             else if (obj is Enum)
