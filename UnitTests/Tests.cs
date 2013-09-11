@@ -679,5 +679,19 @@ namespace UnitTests
             var ooo = BJSON.Instance.ToObject<Dictionary<string, string[]>>(s);
             Assert.AreEqual(3, ooo["b"].Length);
         }
+
+        [Test]
+        public static void HashtableTest()
+        {
+            Hashtable h = new Hashtable();
+            h.Add(1, "dsjfhksa");
+            h.Add("dsds", new class1());
+
+            var s = BJSON.Instance.ToBJSON(h);
+
+            var o = BJSON.Instance.ToObject<Hashtable>(s);
+            Assert.AreEqual(typeof(Hashtable), o.GetType());
+            Assert.AreEqual(typeof(class1), o["dsds"].GetType());
+        }
     }
 }

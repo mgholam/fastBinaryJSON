@@ -79,3 +79,10 @@ v1.3.9
 - fix dynamic objects and lists
 - fix deserialize Dictionary<T, List<V>> and Dictionary<T, V[]>
 - added tests for dictionary with lists
+
+v1.3.10
+-------
+- fixed hastable deserialize
+- added test for hashtable
+- changed list of getters to array ~3% performance gain
+- removed unused code
