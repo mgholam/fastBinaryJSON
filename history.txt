@@ -86,3 +86,11 @@ v1.3.10
 - added test for hashtable
 - changed list of getters to array ~3% performance gain
 - removed unused code
+
+v1.3.11
+-------
+- added signed assembly 
+- version numbers will stay at 1.0.0.0 for drop in compatibility
+- file version will reflect the build number
+- bug fix deserializing to dictionaries instead of dataset when type is not defined
+- access inner property in arrays in dynamic types e.g. d.arr[1].a 

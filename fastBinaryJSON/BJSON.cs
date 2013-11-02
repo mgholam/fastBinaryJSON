@@ -460,7 +460,7 @@ namespace fastBinaryJSON
 #if !SILVERLIGHT
             if (found == false && type == typeof(System.Object))
             {
-                return CreateDataset(d, globaltypes);
+                return d;  // CreateDataset(d, globaltypes);
             }
 #endif
             if (found)
