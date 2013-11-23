@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Xml;
 using System.Text;
+using System.Collections.Specialized;
 
 namespace fastBinaryJSON
 {
@@ -264,6 +265,8 @@ namespace fastBinaryJSON
             Array,
             ByteArray,
             Dictionary,
+            StringKeyDictionary,
+            NameValue,
             StringDictionary,
 #if !SILVERLIGHT
             Hashtable,
@@ -346,12 +349,14 @@ namespace fastBinaryJSON
                     d_type = myPropInfoType.ByteArray;
                 else
                     d_type = myPropInfoType.Array;
-            }
+            }     
+            else if (t == typeof(StringDictionary)) d_type = myPropInfoType.StringDictionary;
+            else if (t == typeof(NameValueCollection)) d_type = myPropInfoType.NameValue;  
             else if (t.Name.Contains("Dictionary"))
             {
                 d.GenericTypes = t.GetGenericArguments();
                 if (d.GenericTypes.Length > 0 && d.GenericTypes[0] == typeof(string))
-                    d_type = myPropInfoType.StringDictionary;
+                    d_type = myPropInfoType.StringKeyDictionary;
                 else
                     d_type = myPropInfoType.Dictionary;
             }
@@ -445,6 +450,11 @@ namespace fastBinaryJSON
         private object ParseDictionary(Dictionary<string, object> d, Dictionary<string, object> globaltypes, Type type, object input)
         {
             object tn = "";
+            if (type == typeof(NameValueCollection))
+                return CreateNV(d);
+            if (type == typeof(StringDictionary))
+                return CreateSD(d);
+
             if (d.TryGetValue("$types", out tn))
             {
                 _globalTypes = true;
@@ -511,13 +521,15 @@ namespace fastBinaryJSON
                             case myPropInfoType.Enum:
                                 oset = CreateEnum(pi.pt, (string)v); 
                                 break;
-                            case myPropInfoType.StringDictionary:
+                            case myPropInfoType.StringKeyDictionary:
                                 oset = CreateStringKeyDictionary((Dictionary<string, object>)v, pi.pt, pi.GenericTypes, globaltypes); 
                                 break;
                             case myPropInfoType.Hashtable:
                             case myPropInfoType.Dictionary:
                                 oset = CreateDictionary((List<object>)v, pi.pt, pi.GenericTypes, globaltypes);
                                 break;
+                            case myPropInfoType.NameValue: oset = CreateNV((Dictionary<string, object>)v); break;
+                            case myPropInfoType.StringDictionary: oset = CreateSD((Dictionary<string, object>)v); break;
                             case myPropInfoType.Array:
                                 oset = CreateArray((List<object>)v, pi.pt, pi.bt, globaltypes); 
                                 break;
@@ -541,6 +553,25 @@ namespace fastBinaryJSON
             return o;
         }
 
+        private StringDictionary CreateSD(Dictionary<string, object> d)
+        {
+            StringDictionary nv = new StringDictionary();
+
+            foreach (var o in d)
+                nv.Add(o.Key, (string)o.Value);
+
+            return nv;
+        }
+
+        private NameValueCollection CreateNV(Dictionary<string, object> d)
+        {
+            NameValueCollection nv = new NameValueCollection();
+
+            foreach (var o in d)
+                nv.Add(o.Key, (string)o.Value);
+
+            return nv;
+        }
 
         private object CreateCustom(string v, Type type)
         {

@@ -94,3 +94,9 @@ v1.3.11
 - file version will reflect the build number
 - bug fix deserializing to dictionaries instead of dataset when type is not defined
 - access inner property in arrays in dynamic types e.g. d.arr[1].a 
+
+v1.3.12
+-------
+- bug fix dynamic json and root arrays e.g. [1,2,3,4]
+- bug fix objects in array dynamic types e.g. [1,2,{"prop":90}]
+- added support for special collections : StringDictionary, NameValueCollection

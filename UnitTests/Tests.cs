@@ -6,6 +6,7 @@ using System.Data;
 using System.Collections;
 using System.Threading;
 using fastBinaryJSON;
+using System.Collections.Specialized;
 
 namespace UnitTests
 {
@@ -693,5 +694,39 @@ namespace UnitTests
             Assert.AreEqual(typeof(Hashtable), o.GetType());
             Assert.AreEqual(typeof(class1), o["dsds"].GetType());
         }
+
+        public class coltest
+        {
+            public string name;
+            public NameValueCollection nv;
+            public StringDictionary sd;
+        }
+
+        [Test]
+        public static void SpecialCollections()
+        {
+            var nv = new NameValueCollection();
+            nv.Add("1", "a");
+            nv.Add("2", "b");
+            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(nv);
+            var oo = fastBinaryJSON.BJSON.Instance.ToObject<NameValueCollection>(s);
+            Assert.AreEqual("a", oo["1"]);
+            var sd = new StringDictionary();
+            sd.Add("1", "a");
+            sd.Add("2", "b");
+            s = fastBinaryJSON.BJSON.Instance.ToBJSON(sd);
+            var o = fastBinaryJSON.BJSON.Instance.ToObject<StringDictionary>(s);
+            Assert.AreEqual("b", o["2"]);
+
+            coltest c = new coltest();
+            c.name = "aaa";
+            c.nv = nv;
+            c.sd = sd;
+            s = fastBinaryJSON.BJSON.Instance.ToBJSON(c);
+            var ooo = fastBinaryJSON.BJSON.Instance.ToObject(s);
+            Assert.AreEqual("a", (ooo as coltest).nv["1"]);
+            Assert.AreEqual("b", (ooo as coltest).sd["2"]);
+        }
+
     }
 }

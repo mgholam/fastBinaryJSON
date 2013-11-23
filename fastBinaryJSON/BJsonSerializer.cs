@@ -9,6 +9,7 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Collections.Specialized;
 
 namespace fastBinaryJSON
 {
@@ -128,6 +129,12 @@ namespace fastBinaryJSON
             else if (obj is byte[])
                 WriteBytes((byte[])obj);
 
+            else if (obj is StringDictionary)
+                WriteSD((StringDictionary)obj);
+
+            else if (obj is NameValueCollection)
+                WriteNV((NameValueCollection)obj);
+
             else if (obj is IEnumerable)
                 WriteArray((IEnumerable)obj);
 
@@ -139,6 +146,40 @@ namespace fastBinaryJSON
 
             else
                 WriteObject(obj);
+        }
+
+        private void WriteNV(NameValueCollection nameValueCollection)
+        {
+            _output.WriteByte(TOKENS.DOC_START);
+
+            bool pendingSeparator = false;
+
+            foreach (string key in nameValueCollection)
+            {
+                if (pendingSeparator) _output.WriteByte(TOKENS.COMMA);
+
+                WritePair(key, nameValueCollection[key]);
+
+                pendingSeparator = true;
+            }
+            _output.WriteByte(TOKENS.DOC_END);
+        }
+
+        private void WriteSD(StringDictionary stringDictionary)
+        {
+            _output.WriteByte(TOKENS.DOC_START);
+
+            bool pendingSeparator = false;
+
+            foreach (DictionaryEntry entry in stringDictionary)
+            {
+                if (pendingSeparator) _output.WriteByte(TOKENS.COMMA);
+
+                WritePair((string)entry.Key, entry.Value);
+
+                pendingSeparator = true;
+            }
+            _output.WriteByte(TOKENS.DOC_END);
         }
 
         private void WriteUShort(ushort p)
