@@ -311,7 +311,7 @@ namespace fastBinaryJSON
             else
             {
                 sd = new SafeDictionary<string, myPropInfo>();
-                PropertyInfo[] pr = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+                PropertyInfo[] pr = type.GetProperties(BindingFlags.Public | BindingFlags.Instance );//| BindingFlags.Static);
                 foreach (PropertyInfo p in pr)
                 {
                     myPropInfo d = CreateMyProp(p.PropertyType, p.Name);
@@ -320,7 +320,7 @@ namespace fastBinaryJSON
                     d.getter = Reflection.CreateGetMethod(type, p);
                     sd.Add(p.Name, d);
                 }
-                FieldInfo[] fi = type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+                FieldInfo[] fi = type.GetFields(BindingFlags.Public | BindingFlags.Instance );//| BindingFlags.Static);
                 foreach (FieldInfo f in fi)
                 {
                     myPropInfo d = CreateMyProp(f.FieldType, f.Name);
@@ -519,7 +519,7 @@ namespace fastBinaryJSON
                                 oset = CreateCustom((string)v, pi.pt);
                                 break;
                             case myPropInfoType.Enum:
-                                oset = CreateEnum(pi.pt, (string)v); 
+                                oset = CreateEnum(pi.pt, v); 
                                 break;
                             case myPropInfoType.StringKeyDictionary:
                                 oset = CreateStringKeyDictionary((Dictionary<string, object>)v, pi.pt, pi.GenericTypes, globaltypes); 
@@ -580,11 +580,11 @@ namespace fastBinaryJSON
             return d(v);
         }
 
-        private object CreateEnum(Type pt, string v)
+        private object CreateEnum(Type pt, object v)
         {
             // TODO : optimize create enum
 #if !SILVERLIGHT
-            return Enum.Parse(pt, v);
+            return Enum.Parse(pt, v.ToString());
 #else
             return Enum.Parse(pt, v, true);
 #endif

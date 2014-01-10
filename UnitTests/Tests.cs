@@ -728,5 +728,24 @@ namespace UnitTests
             Assert.AreEqual("b", (ooo as coltest).sd["2"]);
         }
 
+        public enum enumt
+        {
+            A = 65,
+            B = 90,
+            C = 100
+        }
+        public class constch
+        {
+            public enumt e = enumt.B;
+            public string Name = "aa";
+            public const int age = 11;
+        }
+
+        [Test]
+        public static void consttest()
+        {
+            var s = BJSON.Instance.ToBJSON(new constch());
+            var o = BJSON.Instance.ToObject(s);
+        }
     }
 }
