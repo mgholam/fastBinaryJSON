@@ -747,5 +747,59 @@ namespace UnitTests
             var s = BJSON.Instance.ToBJSON(new constch());
             var o = BJSON.Instance.ToObject(s);
         }
+
+        public class ignoreatt : Attribute
+        {
+        }
+
+        public class ignore
+        {
+            public string Name { get; set; }
+            [System.Xml.Serialization.XmlIgnore]
+            public int Age1 { get; set; }
+            [ignoreatt]
+            public int Age2;
+        }
+        public class ignore1 : ignore
+        {
+        }
+
+        [Test]
+        public static void IgnoreAttributes()
+        {
+            var i = new ignore { Age1 = 10, Age2 = 20, Name = "aa" };
+            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(i);
+            var o = fastBinaryJSON.BJSON.Instance.ToObject<ignore>(s);
+            Assert.AreEqual(0,o.Age1);
+            i = new ignore1 { Age1 = 10, Age2 = 20, Name = "bb" };
+            var j = new BJSONParameters();
+            j.IgnoreAttributes.Add(typeof(ignoreatt));
+            s = fastBinaryJSON.BJSON.Instance.ToBJSON(i, j);
+            var oo = fastBinaryJSON.BJSON.Instance.ToObject<ignore1>(s);
+            Assert.AreEqual(0, oo.Age1);
+            Assert.AreEqual(0, oo.Age2);
+        }
+
+        public class nondefaultctor
+        {
+            public nondefaultctor(int a)
+            { age = a; }
+            public int age;
+        }
+
+        [Test]
+        public static void NonDefaultConstructor()
+        {
+            var o = new nondefaultctor(10);
+            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(o);
+            Console.WriteLine(s);
+            var obj = fastBinaryJSON.BJSON.Instance.ToObject<nondefaultctor>(s);
+            Assert.AreEqual(10, obj.age);
+            List<nondefaultctor> l = new List<nondefaultctor> { o, o, o };
+            s = fastBinaryJSON.BJSON.Instance.ToBJSON(l);
+            var obj2 = fastBinaryJSON.BJSON.Instance.ToObject<List<nondefaultctor>>(s);
+            Assert.AreEqual(3, obj2.Count);
+            Assert.AreEqual(10, obj2[1].age);
+        }
     }
 }

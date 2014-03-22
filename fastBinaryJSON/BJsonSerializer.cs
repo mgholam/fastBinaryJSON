@@ -306,7 +306,7 @@ namespace fastBinaryJSON
         private void WriteDateTime(DateTime dateTime)
         {
             DateTime dt = dateTime;
-            if (_params.UseUTCtimes)
+            if (_params.UseUTCDateTime)
                 dt = dateTime.ToUniversalTime();
 
             _output.WriteByte(TOKENS.DATETIME);
@@ -467,7 +467,7 @@ namespace fastBinaryJSON
                 append = true;
             }
 
-            Getters[] g = Reflection.Instance.GetGetters(t, _params.ShowReadOnlyProperties);
+            Getters[] g = Reflection.Instance.GetGetters(t, _params);
             int c = g.Length;
             for(int ii =0 ; ii<c;ii++)//foreach (var p in g)
             {
