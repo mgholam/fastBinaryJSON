@@ -791,6 +791,7 @@ namespace UnitTests
         public static void NonDefaultConstructor()
         {
             var o = new nondefaultctor(10);
+            fastBinaryJSON.BJSON.Instance.Parameters.ParametricConstructorOverride = true;
             var s = fastBinaryJSON.BJSON.Instance.ToBJSON(o);
             Console.WriteLine(s);
             var obj = fastBinaryJSON.BJSON.Instance.ToObject<nondefaultctor>(s);
@@ -800,6 +801,7 @@ namespace UnitTests
             var obj2 = fastBinaryJSON.BJSON.Instance.ToObject<List<nondefaultctor>>(s);
             Assert.AreEqual(3, obj2.Count);
             Assert.AreEqual(10, obj2[1].age);
+            fastBinaryJSON.BJSON.Instance.Parameters.ParametricConstructorOverride = false;
         }
     }
 }

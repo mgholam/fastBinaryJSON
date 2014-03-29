@@ -84,7 +84,13 @@ namespace fastBinaryJSON
         /// <summary>
         /// Ignore attributes to check for (default : XmlIgnoreAttribute)
         /// </summary>
-        public List<Type> IgnoreAttributes = new List<Type> { typeof(System.Xml.Serialization.XmlIgnoreAttribute) }; 
+        public List<Type> IgnoreAttributes = new List<Type> { typeof(System.Xml.Serialization.XmlIgnoreAttribute) };
+        /// <summary>
+        /// If you have parametric and no default constructor for you classes (default = False)
+        /// 
+        /// IMPORTANT NOTE : If True then all initial values within the class will be ignored and will be not set
+        /// </summary>
+        public bool ParametricConstructorOverride = false;
 
         public void FixValues()
         {
@@ -361,8 +367,13 @@ namespace fastBinaryJSON
             string typename = type.FullName;
             object o = input;
             if (o == null)
-                o = System.Runtime.Serialization.FormatterServices.GetUninitializedObject(type);
-                //Reflection.Instance.FastCreateInstance(type);
+            {
+                if (_params.ParametricConstructorOverride)
+                    o = System.Runtime.Serialization.FormatterServices.GetUninitializedObject(type);
+                else
+                    o = Reflection.Instance.FastCreateInstance(type);
+            }
+
             Dictionary<string, myPropInfo> props = Reflection.Instance.Getproperties(type, typename, false, IsTypeRegistered(type));
             foreach (string name in d.Keys)
             {
@@ -566,26 +577,6 @@ namespace fastBinaryJSON
             ds.BeginInit();
 
             // read dataset schema here
-            ReadSchema(reader, ds, globalTypes);
-
-            foreach (KeyValuePair<string, object> pair in reader)
-            {
-                if (pair.Key == "$type" || pair.Key == "$schema") continue;
-
-                List<object> rows = (List<object>)pair.Value;
-                if (rows == null) continue;
-
-                DataTable dt = ds.Tables[pair.Key];
-                ReadDataTable(rows, dt);
-            }
-
-            ds.EndInit();
-
-            return ds;
-        }
-
-        private void ReadSchema(Dictionary<string, object> reader, DataSet ds, Dictionary<string, object> globalTypes)
-        {
             var schema = reader["$schema"];
 
             if (schema is string)
@@ -604,6 +595,21 @@ namespace fastBinaryJSON
                     ds.Tables[ms.Info[i]].Columns.Add(ms.Info[i + 1], Type.GetType(ms.Info[i + 2]));
                 }
             }
+
+            foreach (KeyValuePair<string, object> pair in reader)
+            {
+                if (pair.Key == "$type" || pair.Key == "$schema") continue;
+
+                List<object> rows = (List<object>)pair.Value;
+                if (rows == null) continue;
+
+                DataTable dt = ds.Tables[pair.Key];
+                ReadDataTable(rows, dt);
+            }
+
+            ds.EndInit();
+
+            return ds;
         }
 
         private void ReadDataTable(List<object> rows, DataTable dt)

@@ -1,3 +1,7 @@
+v1.3.14.1
+---------
+- added ParametricConstructorOverride parameter to control non default constructors
+
 v1.3.14
 -------
 - fixed create enum from value and string
