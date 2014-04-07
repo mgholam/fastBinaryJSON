@@ -14,7 +14,7 @@ namespace fastBinaryJSON
 
         public DynamicJson(byte[] json)
         {
-            var parse = fastBinaryJSON.BJSON.Instance.Parse(json);
+            var parse = fastBinaryJSON.BJSON.Parse(json);
 
             if (parse is IDictionary<string, object>)
                 _dictionary = (IDictionary<string, object>)parse;

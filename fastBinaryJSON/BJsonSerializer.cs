@@ -17,10 +17,12 @@ namespace fastBinaryJSON
     {
         private MemoryStream _output = new MemoryStream();
         private MemoryStream _before = new MemoryStream();
-        readonly int _MAX_DEPTH = 10;
+        readonly int _MAX_DEPTH = 20;
         int _current_depth = 0;
         private Dictionary<string, int> _globalTypes = new Dictionary<string, int>();
+        private Dictionary<object, int> _cirobj = new Dictionary<object, int>();
         private BJSONParameters _params;
+        private bool _circular = false;
 
         internal BJSONSerializer(BJSONParameters param)
         {
@@ -30,6 +32,15 @@ namespace fastBinaryJSON
         internal byte[] ConvertToBJSON(object obj)
         {
             WriteValue(obj);
+            if (_circular)
+            {
+                _before.WriteByte(TOKENS.NAME);
+                byte[] b = Reflection.Instance.utf8.GetBytes("$circular");
+                _before.WriteByte((byte)b.Length);
+                _before.Write(b, 0, b.Length % 256);
+                _before.WriteByte(TOKENS.COLON);
+                _before.WriteByte(TOKENS.TRUE);
+            }
             // add $types
             if (_params.UsingGlobalTypes && _globalTypes != null && _globalTypes.Count>0)
             {
@@ -141,7 +152,7 @@ namespace fastBinaryJSON
             else if (obj is Enum)
                 WriteEnum((Enum)obj);
 
-            else if (BJSON.Instance.IsTypeRegistered(obj.GetType()))
+            else if (Reflection.Instance.IsBjsonTypeRegistered(obj.GetType()))
                 WriteCustom(obj);
 
             else
@@ -272,7 +283,7 @@ namespace fastBinaryJSON
         private void WriteCustom(object obj)
         {
             Serialize s;
-            BJSON.Instance._customSerializer.TryGetValue(obj.GetType(), out s);
+            Reflection.Instance._customSerializer.TryGetValue(obj.GetType(), out s);
             WriteString(s(obj));
         }
 
@@ -428,6 +439,22 @@ namespace fastBinaryJSON
 
         private void WriteObject(object obj)
         {
+            int i = 0;
+            if (_cirobj.TryGetValue(obj, out i) == false)
+                _cirobj.Add(obj, _cirobj.Count + 1);
+            else
+            {
+                if (_current_depth > 0)
+                {
+                    _circular = true;
+                    _output.WriteByte(TOKENS.DOC_START);
+                    WriteName("$i");
+                    WriteColon();
+                    WriteValue(i);
+                    _output.WriteByte(TOKENS.DOC_END);
+                    return;
+                }
+            }
             if (_params.UsingGlobalTypes == false)
                 _output.WriteByte(TOKENS.DOC_START);
             else
@@ -569,7 +596,7 @@ namespace fastBinaryJSON
         private void WriteName(string s)
         {
             _output.WriteByte(TOKENS.NAME);
-            byte[] b = BJSON.Instance.utf8.GetBytes(s);
+            byte[] b = Reflection.Instance.utf8.GetBytes(s);
             _output.WriteByte((byte)b.Length);
             _output.Write(b, 0, b.Length % 256);
         }
@@ -580,12 +607,12 @@ namespace fastBinaryJSON
             if (_params.UseUnicodeStrings)
             {
                 _output.WriteByte(TOKENS.UNICODE_STRING);
-                b = BJSON.Instance.unicode.GetBytes(s);
+                b = Reflection.Instance.unicode.GetBytes(s);
             }
             else
             {
                 _output.WriteByte(TOKENS.STRING);
-                b = BJSON.Instance.utf8.GetBytes(s);
+                b = Reflection.Instance.utf8.GetBytes(s);
             }
             _output.Write(Helper.GetBytes(b.Length, false), 0, 4);
             _output.Write(b, 0, b.Length);

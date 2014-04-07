@@ -1,3 +1,12 @@
+v1.4.0
+------
+- *breaking change* : removed the BJSON.Instance singleton 
+- moved all the state from BJSON to the Reflection singleton
+- all of the BJSON interface is now static  
+- added BJSONParameters overloads for ToObject()
+- support for circular referenced object structures
+- added circular test
+
 v1.3.14.1
 ---------
 - added ParametricConstructorOverride parameter to control non default constructors

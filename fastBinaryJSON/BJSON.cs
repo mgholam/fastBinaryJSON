@@ -102,31 +102,31 @@ namespace fastBinaryJSON
         }
     }
 
-    public sealed class BJSON
+    public static class BJSON
     {
-        [ThreadStatic]
-        private static BJSON _instance;
+        public static BJSONParameters Parameters = new BJSONParameters();
 
-        public static BJSON Instance
+        public static object Parse(byte[] json)
         {
-            get { return _instance ?? (_instance = new BJSON()); }
+            return new BJsonParser(json, Parameters.UseUTCDateTime).Decode();
         }
 
-        private BJSON()
+        public static dynamic ToDynamic(byte[] json)
         {
-        }
-        public BJSONParameters Parameters = new BJSONParameters();
-        public UnicodeEncoding unicode = new UnicodeEncoding();
-        public UTF8Encoding utf8 = new UTF8Encoding();
-        private BJSONParameters _params;
-
-        public byte[] ToBJSON(object obj)
-        {
-            _params = Parameters;
-            return ToBJSON(obj, _params);
+            return new DynamicJson(json);
         }
 
-        public byte[] ToBJSON(object obj, BJSONParameters param)
+        public static void RegisterCustomType(Type type, Serialize serializer, Deserialize deserializer)
+        {
+            Reflection.Instance.RegisterCustomType(type, serializer, deserializer);
+        }
+
+        public static byte[] ToBJSON(object obj)
+        {
+            return ToBJSON(obj, Parameters);
+        }
+
+        public static byte[] ToBJSON(object obj, BJSONParameters param)
         {
             param.FixValues();
             Type t = null;
@@ -139,22 +139,53 @@ namespace fastBinaryJSON
             // FEATURE : enable extensions when you can deserialize anon types
             if (param.EnableAnonymousTypes) { param.UseExtensions = false; param.UsingGlobalTypes = false; }
 
-            _globalTypes = param.UsingGlobalTypes;
             return new BJSONSerializer(param).ConvertToBJSON(obj);
         }
 
-        public object Parse(byte[] json)
+        public static object FillObject(object input, byte[] json)
         {
-            _params = Parameters;
-            _params.FixValues();
-            _globalTypes = _params.UsingGlobalTypes;
-            return new BJsonParser(json, _params.UseUTCDateTime).Decode();
+            return new deserializer(Parameters).FillObject(input, json);
         }
 
-        public dynamic ToDynamic(byte[] json)
+        public static T ToObject<T>(byte[] json)
         {
-            return new DynamicJson(json);
+            return new deserializer(Parameters).ToObject<T>(json);
         }
+
+        public static T ToObject<T>(byte[] json, BJSONParameters param)
+        {
+            return new deserializer(param).ToObject<T>(json);
+        }
+
+        public static  object ToObject(byte[] json)
+        {
+            return new deserializer(Parameters).ToObject(json, null);
+        }
+
+        public static object ToObject(byte[] json, BJSONParameters param)
+        {
+            param.FixValues();
+            return new deserializer(param).ToObject(json, null);
+        }
+
+        public static object ToObject(byte[] json, Type type)
+        {
+            return new deserializer(Parameters).ToObject(json, type);
+        }
+    }
+
+    internal class deserializer
+    {
+        public deserializer(BJSONParameters param)
+        {
+            _params = param;
+        }
+        
+        private BJSONParameters _params;
+        private Dictionary<object, int> _circobj = new Dictionary<object, int>();
+        private Dictionary<int, object> _cirrev = new Dictionary<int, object>();
+        private bool _circular = false;
+
 
         public T ToObject<T>(byte[] json)
         {
@@ -168,7 +199,6 @@ namespace fastBinaryJSON
 
         public object ToObject(byte[] json, Type type)
         {
-            _params = Parameters;
             _params.FixValues();
             Type t = null;
             if (type != null && type.IsGenericType)
@@ -210,6 +240,15 @@ namespace fastBinaryJSON
             return o;
         }
 
+        public object FillObject(object input, byte[] json)
+        {
+            _params.FixValues();
+            Dictionary<string, object> ht = new BJsonParser(json, _params.UseUTCDateTime).Decode() as Dictionary<string, object>;
+            if (ht == null) return null;
+            return ParseDictionary(ht, null, input.GetType(), input);
+        }
+
+
         private object RootHashTable(List<object> o)
         {
             Hashtable h = new Hashtable();
@@ -228,38 +267,6 @@ namespace fastBinaryJSON
             }
 
             return h;
-        }
-
-        public object FillObject(object input, byte[] json)
-        {
-            _params = Parameters;
-            _params.FixValues();
-            Dictionary<string, object> ht = new BJsonParser(json, _params.UseUTCDateTime).Decode() as Dictionary<string, object>;
-            if (ht == null) return null;
-            return ParseDictionary(ht, null, input.GetType(), input);
-        }
-
-
-        internal SafeDictionary<Type, Serialize> _customSerializer = new SafeDictionary<Type, Serialize>();
-        internal SafeDictionary<Type, Deserialize> _customDeserializer = new SafeDictionary<Type, Deserialize>();
-
-        public void RegisterCustomType(Type type, Serialize serializer, Deserialize deserializer)
-        {
-            if (type != null && serializer != null && deserializer != null)
-            {
-                _customSerializer.Add(type, serializer);
-                _customDeserializer.Add(type, deserializer);
-                // reset property cache
-                Reflection.Instance.ResetPropertyCache();// _propertycache = new SafeDictionary<string, SafeDictionary<string, myPropInfo>>();
-            }
-        }
-
-        internal bool IsTypeRegistered(Type t)
-        {
-            if (_customSerializer.Count == 0) 
-                return false;
-            Serialize s;
-            return _customSerializer.TryGetValue(t, out s);
         }
 
         private object RootList(object parse, Type type)
@@ -331,6 +338,15 @@ namespace fastBinaryJSON
                 return CreateNV(d);
             if (type == typeof(StringDictionary))
                 return CreateSD(d);
+            if (_circular == false)
+                _circular = d.TryGetValue("$circular", out tn);
+
+            if (d.TryGetValue("$i", out tn))
+            {
+                object v = null;
+                _cirrev.TryGetValue((int)tn, out v);
+                return v;
+            }
 
             if (d.TryGetValue("$types", out tn))
             {
@@ -355,7 +371,7 @@ namespace fastBinaryJSON
                 if (_globalTypes && globaltypes != null)
                 {
                     object tname = "";
-                    if (globaltypes.TryGetValue((string)tn, out tname))
+                    if (globaltypes!=null && globaltypes.TryGetValue((string)tn, out tname))
                         tn = tname;
                 }
                 type = Reflection.Instance.GetTypeFromCache((string)tn);
@@ -373,8 +389,18 @@ namespace fastBinaryJSON
                 else
                     o = Reflection.Instance.FastCreateInstance(type);
             }
+            if (_circular)
+            {
+                int i = 0;
+                if (_circobj.TryGetValue(o, out i) == false)
+                {
+                    i = _circobj.Count + 1;
+                    _circobj.Add(o, i);
+                    _cirrev.Add(i, o);
+                }
+            }
 
-            Dictionary<string, myPropInfo> props = Reflection.Instance.Getproperties(type, typename, false, IsTypeRegistered(type));
+            Dictionary<string, myPropInfo> props = Reflection.Instance.Getproperties(type, typename, false, Reflection.Instance.IsBjsonTypeRegistered(type));
             foreach (string name in d.Keys)
             {
                 myPropInfo pi;
@@ -399,7 +425,7 @@ namespace fastBinaryJSON
                                 break;
 #endif                           
                             case myPropInfoType.Custom :
-                                oset = CreateCustom((string)v, pi.pt);
+                                oset = Reflection.Instance.CreateCustom((string)v, pi.pt);
                                 break;
                             case myPropInfoType.Enum:
                                 oset = CreateEnum(pi.pt, v); 
@@ -454,13 +480,6 @@ namespace fastBinaryJSON
                 nv.Add(o.Key, (string)o.Value);
 
             return nv;
-        }
-
-        private object CreateCustom(string v, Type type)
-        {
-            Deserialize d;
-            _customDeserializer.TryGetValue(type, out d);
-            return d(v);
         }
 
         private object CreateEnum(Type pt, object v)

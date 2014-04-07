@@ -5,6 +5,7 @@ using System.Data;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
+using fastBinaryJSON;
 
 namespace consoletest
 {
@@ -40,15 +41,13 @@ namespace consoletest
         public Dictionary<string, class1> dic { get; set; }
     }
     
-    class Program
+    public class Program
     {
         static int count = 1000;
         static int tcount = 5;
         static DataSet ds = new DataSet();
         static bool exotic = false;
         static bool dsser = false;
-
-
 
         public static void Main(string[] args)
         {
@@ -70,19 +69,19 @@ namespace consoletest
 
            // //rr.Add(r);
 
-           // //fastJSON.JSON.Instance.RegisterCustomType(typeof(TimeSpan), tsser, tsdes);
-           // //fastJSON.JSON.Instance.RegisterCustomType(typeof(System.Drawing.Point), pser, pdes);
+           // //fastJSON.JSON.RegisterCustomType(typeof(TimeSpan), tsser, tsdes);
+           // //fastJSON.JSON.RegisterCustomType(typeof(System.Drawing.Point), pser, pdes);
            // //List<object> list = new List<object>();
            // //list.Add("hello there");
            // //list.Add(Guid.NewGuid());
            // //list.Add(true);
            // //list.Add(null);
            // //list.Add(DateTime.Now);
-           //// var ooo= fastBinaryJSON.BJSON.Instance.ToBJSON(list);
-           //// var ppp = fastBinaryJSON.BJSON.Instance.ToObject(ooo);
-           // byte[] ts = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
-           // object dic2 = fastBinaryJSON.BJSON.Instance.Parse(ts);
-           // object tsd = fastBinaryJSON.BJSON.Instance.ToObject(ts);
+           //// var ooo= fastBinaryJSON.BJSON.ToBJSON(list);
+           //// var ppp = fastBinaryJSON.BJSON.ToObject(ooo);
+           // byte[] ts = fastBinaryJSON.BJSON.ToBJSON(r);
+           // object dic2 = fastBinaryJSON.BJSON.Parse(ts);
+           // object tsd = fastBinaryJSON.BJSON.ToObject(ts);
 
            // NoExt ne = new NoExt();
            // ne.Name = "hello";
@@ -92,11 +91,11 @@ namespace consoletest
            // ne.dic.Add("hello", new class1("asda","asdas",Guid.NewGuid()));
            // ne.objs = new baseclass[] { new class1("a","1",Guid.NewGuid()), new class2("b","2","desc") };
 
-           // //fastJSON.JSON.Instance.UseSerializerExtension = false;
-           // //fastJSON.JSON.Instance.UseFastGuid = false;
-           // byte[] str = fastBinaryJSON.BJSON.Instance.ToBJSON(ne);
-           // object dic = fastBinaryJSON.BJSON.Instance.Parse(str);
-           // object oo = fastBinaryJSON.BJSON.Instance.ToObject<NoExt>(str);//<NoExt>(str);
+           // //fastJSON.JSON.UseSerializerExtension = false;
+           // //fastJSON.JSON.UseFastGuid = false;
+           // byte[] str = fastBinaryJSON.BJSON.ToBJSON(ne);
+           // object dic = fastBinaryJSON.BJSON.Parse(str);
+           // object oo = fastBinaryJSON.BJSON.ToObject<NoExt>(str);//<NoExt>(str);
 
             Console.WriteLine(".net version = " + Environment.Version);
             Console.WriteLine("press key : (E)xotic ");
@@ -256,11 +255,11 @@ namespace consoletest
                 colclass deserializedStore;
                 byte[] jsonText = null;
 
-                jsonText = fastBinaryJSON.BJSON.Instance.ToBJSON(c);
+                jsonText = fastBinaryJSON.BJSON.ToBJSON(c);
                 //Console.WriteLine(" size = " + jsonText.Length);
                 for (int i = 0; i < count; i++)
                 {
-                    deserializedStore = (colclass)fastBinaryJSON.BJSON.Instance.ToObject(jsonText);
+                    deserializedStore = (colclass)fastBinaryJSON.BJSON.ToObject(jsonText);
                 }
                 Console.Write("\t" + DateTime.Now.Subtract(st).TotalMilliseconds);
             }
@@ -277,7 +276,7 @@ namespace consoletest
                 byte[] jsonText = null;
                 for (int i = 0; i < count; i++)
                 {
-                    jsonText = fastBinaryJSON.BJSON.Instance.ToBJSON(c);
+                    jsonText = fastBinaryJSON.BJSON.ToBJSON(c);
                 }
                 Console.Write("\t" + DateTime.Now.Subtract(st).TotalMilliseconds);
             }

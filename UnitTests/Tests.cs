@@ -243,8 +243,8 @@ namespace UnitTests
         public static void objectarray()
         {
             var o = new object[3] { 1, "sdfsdfs", DateTime.Now};
-            var b = fastBinaryJSON.BJSON.Instance.ToBJSON(o);
-            var s = fastBinaryJSON.BJSON.Instance.ToObject(b); 
+            var b = fastBinaryJSON.BJSON.ToBJSON(o);
+            var s = fastBinaryJSON.BJSON.ToObject(b); 
         }
 
         [Test]
@@ -257,9 +257,9 @@ namespace UnitTests
             r.date = DateTime.Now;
             r.ds = CreateDataset().Tables[0];
 
-            var b = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
+            var b = fastBinaryJSON.BJSON.ToBJSON(r);
 
-            var o = fastBinaryJSON.BJSON.Instance.ToObject(b);
+            var o = fastBinaryJSON.BJSON.ToObject(b);
 
             Assert.AreEqual(2312, (o as Retclass).Field2);
         }
@@ -275,9 +275,9 @@ namespace UnitTests
             r.date = DateTime.Now;
             r.ds = CreateDataset().Tables[0];
 
-            var b = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
+            var b = fastBinaryJSON.BJSON.ToBJSON(r);
 
-            var o = fastBinaryJSON.BJSON.Instance.ToObject(b);
+            var o = fastBinaryJSON.BJSON.ToObject(b);
 
             Assert.AreEqual(2312, ((Retstruct)o).Field2);
         }
@@ -292,9 +292,9 @@ namespace UnitTests
             r.date = DateTime.Now;
             r.ds = CreateDataset().Tables[0];
 
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
+            var s = fastBinaryJSON.BJSON.ToBJSON(r);
 
-            var o = fastBinaryJSON.BJSON.Instance.Parse(s);
+            var o = fastBinaryJSON.BJSON.Parse(s);
 
             Assert.IsNotNull(o);
         }
@@ -305,9 +305,9 @@ namespace UnitTests
             List<string> ls = new List<string>();
             ls.AddRange(new string[] { "a", "b", "c", "d" });
 
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(ls);
+            var s = fastBinaryJSON.BJSON.ToBJSON(ls);
 
-            var o = fastBinaryJSON.BJSON.Instance.ToObject(s);
+            var o = fastBinaryJSON.BJSON.ToObject(s);
 
             Assert.IsNotNull(o);
         }
@@ -318,10 +318,10 @@ namespace UnitTests
             List<int> ls = new List<int>();
             ls.AddRange(new int[] { 1, 2, 3, 4, 5, 10 });
 
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(ls);
+            var s = fastBinaryJSON.BJSON.ToBJSON(ls);
 
-            var p = fastBinaryJSON.BJSON.Instance.Parse(s);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject(s); // long[] {1,2,3,4,5,10}
+            var p = fastBinaryJSON.BJSON.Parse(s);
+            var o = fastBinaryJSON.BJSON.ToObject(s); // long[] {1,2,3,4,5,10}
 
             Assert.IsNotNull(o);
         }
@@ -329,12 +329,12 @@ namespace UnitTests
         [Test]
         public static void Variables()
         {
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(42);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(42);
+            var o = fastBinaryJSON.BJSON.ToObject(s);
             Assert.AreEqual(o, 42);
 
-            s = fastBinaryJSON.BJSON.Instance.ToBJSON("hello");
-            o = fastBinaryJSON.BJSON.Instance.ToObject(s);
+            s = fastBinaryJSON.BJSON.ToBJSON("hello");
+            o = fastBinaryJSON.BJSON.ToObject(s);
             Assert.AreEqual(o, "hello");
         }
 
@@ -395,10 +395,10 @@ namespace UnitTests
             List<int> ls = new List<int>();
             ls.AddRange(new int[] { 1, 2, 3, 4, 5, 10 });
 
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(ls);
+            var s = fastBinaryJSON.BJSON.ToBJSON(ls);
             Console.WriteLine(s);
-            var p = fastBinaryJSON.BJSON.Instance.Parse(s);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<List<int>>(s);
+            var p = fastBinaryJSON.BJSON.Parse(s);
+            var o = fastBinaryJSON.BJSON.ToObject<List<int>>(s);
 
             Assert.IsNotNull(o);
         }
@@ -409,8 +409,8 @@ namespace UnitTests
             Dictionary<string, Retclass> r = new Dictionary<string, Retclass>();
             r.Add("11", new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
             r.Add("12", new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<Dictionary<string, Retclass>>(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(r);
+            var o = fastBinaryJSON.BJSON.ToObject<Dictionary<string, Retclass>>(s);
             Assert.AreEqual(2, o.Count);
         }
 
@@ -420,8 +420,8 @@ namespace UnitTests
             Dictionary<string, Retclass> r = new Dictionary<string, Retclass>();
             r.Add("11", new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
             r.Add("12", new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(r, new fastBinaryJSON.BJSONParameters { UseExtensions = false });
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<Dictionary<string, Retclass>>(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(r, new fastBinaryJSON.BJSONParameters { UseExtensions = false });
+            var o = fastBinaryJSON.BJSON.ToObject<Dictionary<string, Retclass>>(s);
             Assert.AreEqual(2, o.Count);
         }
 
@@ -431,8 +431,8 @@ namespace UnitTests
             Dictionary<int, Retclass> r = new Dictionary<int, Retclass>();
             r.Add(11, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
             r.Add(12, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<Dictionary<int, Retclass>>(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(r);
+            var o = fastBinaryJSON.BJSON.ToObject<Dictionary<int, Retclass>>(s);
             Assert.AreEqual(2, o.Count);
         }
 
@@ -442,8 +442,8 @@ namespace UnitTests
             Dictionary<int, Retclass> r = new Dictionary<int, Retclass>();
             r.Add(11, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
             r.Add(12, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(r, new fastBinaryJSON.BJSONParameters { UseExtensions = false });
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<Dictionary<int, Retclass>>(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(r, new fastBinaryJSON.BJSONParameters { UseExtensions = false });
+            var o = fastBinaryJSON.BJSON.ToObject<Dictionary<int, Retclass>>(s);
             Assert.AreEqual(2, o.Count);
         }
 
@@ -453,8 +453,8 @@ namespace UnitTests
             Dictionary<Retstruct, Retclass> r = new Dictionary<Retstruct, Retclass>();
             r.Add(new Retstruct { Field1 = "111", Field2 = 1, date = DateTime.Now }, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
             r.Add(new Retstruct { Field1 = "222", Field2 = 2, date = DateTime.Now }, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<Dictionary<Retstruct, Retclass>>(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(r);
+            var o = fastBinaryJSON.BJSON.ToObject<Dictionary<Retstruct, Retclass>>(s);
             Assert.AreEqual(2, o.Count);
         }
 
@@ -464,8 +464,8 @@ namespace UnitTests
             Dictionary<Retstruct, Retclass> r = new Dictionary<Retstruct, Retclass>();
             r.Add(new Retstruct { Field1 = "111", Field2 = 1, date = DateTime.Now }, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
             r.Add(new Retstruct { Field1 = "222", Field2 = 2, date = DateTime.Now }, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(r, new fastBinaryJSON.BJSONParameters { UseExtensions = false });
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<Dictionary<Retstruct, Retclass>>(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(r, new fastBinaryJSON.BJSONParameters { UseExtensions = false });
+            var o = fastBinaryJSON.BJSON.ToObject<Dictionary<Retstruct, Retclass>>(s);
             Assert.AreEqual(2, o.Count);
         }
 
@@ -475,8 +475,8 @@ namespace UnitTests
             List<Retclass> r = new List<Retclass>();
             r.Add(new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
             r.Add(new Retclass { Field1 = "222", Field2 = 3, date = DateTime.Now });
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<List<Retclass>>(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(r);
+            var o = fastBinaryJSON.BJSON.ToObject<List<Retclass>>(s);
             Assert.AreEqual(2, o.Count);
         }
 
@@ -486,8 +486,8 @@ namespace UnitTests
             List<Retclass> r = new List<Retclass>();
             r.Add(new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
             r.Add(new Retclass { Field1 = "222", Field2 = 3, date = DateTime.Now });
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(r, new fastBinaryJSON.BJSONParameters { UseExtensions = false });
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<List<Retclass>>(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(r, new fastBinaryJSON.BJSONParameters { UseExtensions = false });
+            var o = fastBinaryJSON.BJSON.ToObject<List<Retclass>>(s);
             Assert.AreEqual(2, o.Count);
         }
 
@@ -502,13 +502,13 @@ namespace UnitTests
             ne.dic.Add("hello", new class1("asda", "asdas", Guid.NewGuid()));
             ne.objs = new baseclass[] { new class1("a", "1", Guid.NewGuid()), new class2("b", "2", "desc") };
 
-            byte[] str = fastBinaryJSON.BJSON.Instance.ToBJSON(ne, new fastBinaryJSON.BJSONParameters { UseExtensions = false, UsingGlobalTypes = false });
-            object dic = fastBinaryJSON.BJSON.Instance.Parse(str);
-            object oo = fastBinaryJSON.BJSON.Instance.ToObject<NoExt>(str);
+            byte[] str = fastBinaryJSON.BJSON.ToBJSON(ne, new fastBinaryJSON.BJSONParameters { UseExtensions = false, UsingGlobalTypes = false });
+            object dic = fastBinaryJSON.BJSON.Parse(str);
+            object oo = fastBinaryJSON.BJSON.ToObject<NoExt>(str);
 
             NoExt nee = new NoExt();
             nee.intern = new NoExt { Name = "aaa" };
-            fastBinaryJSON.BJSON.Instance.FillObject(nee, str);
+            fastBinaryJSON.BJSON.FillObject(nee, str);
         }
 
         [Test]
@@ -516,12 +516,13 @@ namespace UnitTests
         {
             Console.WriteLine(".net version = " + Environment.Version);
             var q = new { Name = "asassa", Address = "asadasd", Age = 12 };
-            byte[] sq = fastBinaryJSON.BJSON.Instance.ToBJSON(q, new fastBinaryJSON.BJSONParameters { EnableAnonymousTypes = true });
+            byte[] sq = fastBinaryJSON.BJSON.ToBJSON(q, new fastBinaryJSON.BJSONParameters { EnableAnonymousTypes = true });
         }
 
         [Test]
         public static void Speed_Test_Deserialize()
         {
+            
             Console.Write("fastbinaryjson deserialize");
             colclass c = CreateObject();
             double t = 0;
@@ -529,10 +530,10 @@ namespace UnitTests
             {
                 DateTime st = DateTime.Now;
                 colclass deserializedStore;
-                byte[] jsonText = fastBinaryJSON.BJSON.Instance.ToBJSON(c);
+                byte[] jsonText = fastBinaryJSON.BJSON.ToBJSON(c);
                 for (int i = 0; i < count; i++)
                 {
-                    deserializedStore = (colclass)fastBinaryJSON.BJSON.Instance.ToObject(jsonText);
+                    deserializedStore = fastBinaryJSON.BJSON.ToObject<colclass>(jsonText, new BJSONParameters { ParametricConstructorOverride = true });
                 }
                 t += DateTime.Now.Subtract(st).TotalMilliseconds;
                 Console.Write("\t" + DateTime.Now.Subtract(st).TotalMilliseconds);
@@ -544,7 +545,7 @@ namespace UnitTests
         public static void Speed_Test_Serialize()
         {
             Console.Write("fastbinaryjson serialize");
-            //fastBinaryJSON.BJSON.Instance.Parameters.UsingGlobalTypes = false;
+            //fastBinaryJSON.BJSON.Parameters.UsingGlobalTypes = false;
             colclass c = CreateObject();
             double t = 0;
             for (int pp = 0; pp < tcount; pp++)
@@ -553,7 +554,7 @@ namespace UnitTests
                 byte[] jsonText = null;
                 for (int i = 0; i < count; i++)
                 {
-                    jsonText = fastBinaryJSON.BJSON.Instance.ToBJSON(c);
+                    jsonText = fastBinaryJSON.BJSON.ToBJSON(c);
                 }
                 t += DateTime.Now.Subtract(st).TotalMilliseconds;
                 Console.Write("\t" + DateTime.Now.Subtract(st).TotalMilliseconds);
@@ -567,25 +568,25 @@ namespace UnitTests
             List<RetNestedclass> r = new List<RetNestedclass>();
             r.Add(new RetNestedclass { Nested = new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now } });
             r.Add(new RetNestedclass { Nested = new Retclass { Field1 = "222", Field2 = 3, date = DateTime.Now } });
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(r);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<List<RetNestedclass>>(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(r);
+            var o = fastBinaryJSON.BJSON.ToObject<List<RetNestedclass>>(s);
             Assert.AreEqual(2, o.Count);
         }
 
         [Test]
         public static void NullTest()
         {
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(null);
+            var s = fastBinaryJSON.BJSON.ToBJSON(null);
             Assert.AreEqual(s[0], fastBinaryJSON.TOKENS.NULL);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject(s);
+            var o = fastBinaryJSON.BJSON.ToObject(s);
             Assert.AreEqual(null, o);
         }
 
         [Test]
         public static void ZeroArray()
         {
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(new object[] { });
-            var o = fastBinaryJSON.BJSON.Instance.ToObject(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(new object[] { });
+            var o = fastBinaryJSON.BJSON.ToObject(s);
             var a = o as object[];
             Assert.AreEqual(0, a.Length);
         }
@@ -595,8 +596,8 @@ namespace UnitTests
         {
             Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("de");
             decimal d = 3.141592654M;
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(d);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(d);
+            var o = fastBinaryJSON.BJSON.ToObject(s);
             Assert.AreEqual(d, (decimal)o);
 
             Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en");
@@ -613,8 +614,8 @@ namespace UnitTests
             arrayclass a = new arrayclass();
             a.ints = new int[] { 3, 1, 4 };
             a.strs = new string[] {"a","b","c"};
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(a);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(a);
+            var o = fastBinaryJSON.BJSON.ToObject(s);
         }
 		
 		[Test]
@@ -622,17 +623,17 @@ namespace UnitTests
         {
             var ds = CreateDataset();
 
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(ds);
+            var s = fastBinaryJSON.BJSON.ToBJSON(ds);
 
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<DataSet>(s);
+            var o = fastBinaryJSON.BJSON.ToObject<DataSet>(s);
 
             Assert.AreEqual(typeof(DataSet), o.GetType());
             Assert.IsNotNull(o);
             Assert.AreEqual(2, o.Tables.Count);
 
 
-            s = fastBinaryJSON.BJSON.Instance.ToBJSON(ds.Tables[0]);
-            var oo = fastBinaryJSON.BJSON.Instance.ToObject<DataTable>(s);
+            s = fastBinaryJSON.BJSON.ToBJSON(ds.Tables[0]);
+            var oo = fastBinaryJSON.BJSON.ToObject<DataTable>(s);
             Assert.IsNotNull(oo);
             Assert.AreEqual(typeof(DataTable), oo.GetType());
             Assert.AreEqual(100, oo.Rows.Count);
@@ -643,10 +644,10 @@ namespace UnitTests
         {
             var obj = new { Name = "aaaaaa", Age = 10, dob = DateTime.Parse("2000-01-01 00:00:00"), inner = new { prop = 30 } };
 
-            byte[] b = fastBinaryJSON.BJSON.Instance.ToBJSON(
+            byte[] b = fastBinaryJSON.BJSON.ToBJSON(
                 obj,
                 new fastBinaryJSON.BJSONParameters { UseExtensions = false, EnableAnonymousTypes= true });
-            dynamic d = fastBinaryJSON.BJSON.Instance.ToDynamic(b);
+            dynamic d = fastBinaryJSON.BJSON.ToDynamic(b);
             var ss = d.Name;
             var oo = d.Age;
             var dob = d.dob;
@@ -670,14 +671,14 @@ namespace UnitTests
             dd.d = new Dictionary<string, List<string>>();
             dd.d.Add("a", new List<string> { "1", "2", "3" });
             dd.d.Add("b", new List<string> { "4", "5", "7" });
-            byte[] s = BJSON.Instance.ToBJSON(dd, new BJSONParameters { UseExtensions = false });
-            var o = BJSON.Instance.ToObject<diclist>(s);
+            byte[] s = BJSON.ToBJSON(dd, new BJSONParameters { UseExtensions = false });
+            var o = BJSON.ToObject<diclist>(s);
             Assert.AreEqual(3, o.d["a"].Count);
 
-            s = BJSON.Instance.ToBJSON(dd.d, new BJSONParameters { UseExtensions = false });
-            var oo = BJSON.Instance.ToObject<Dictionary<string, List<string>>>(s);
+            s = BJSON.ToBJSON(dd.d, new BJSONParameters { UseExtensions = false });
+            var oo = BJSON.ToObject<Dictionary<string, List<string>>>(s);
             Assert.AreEqual(3, oo["a"].Count);
-            var ooo = BJSON.Instance.ToObject<Dictionary<string, string[]>>(s);
+            var ooo = BJSON.ToObject<Dictionary<string, string[]>>(s);
             Assert.AreEqual(3, ooo["b"].Length);
         }
 
@@ -688,9 +689,9 @@ namespace UnitTests
             h.Add(1, "dsjfhksa");
             h.Add("dsds", new class1());
 
-            var s = BJSON.Instance.ToBJSON(h);
+            var s = BJSON.ToBJSON(h);
 
-            var o = BJSON.Instance.ToObject<Hashtable>(s);
+            var o = BJSON.ToObject<Hashtable>(s);
             Assert.AreEqual(typeof(Hashtable), o.GetType());
             Assert.AreEqual(typeof(class1), o["dsds"].GetType());
         }
@@ -708,22 +709,22 @@ namespace UnitTests
             var nv = new NameValueCollection();
             nv.Add("1", "a");
             nv.Add("2", "b");
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(nv);
-            var oo = fastBinaryJSON.BJSON.Instance.ToObject<NameValueCollection>(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(nv);
+            var oo = fastBinaryJSON.BJSON.ToObject<NameValueCollection>(s);
             Assert.AreEqual("a", oo["1"]);
             var sd = new StringDictionary();
             sd.Add("1", "a");
             sd.Add("2", "b");
-            s = fastBinaryJSON.BJSON.Instance.ToBJSON(sd);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<StringDictionary>(s);
+            s = fastBinaryJSON.BJSON.ToBJSON(sd);
+            var o = fastBinaryJSON.BJSON.ToObject<StringDictionary>(s);
             Assert.AreEqual("b", o["2"]);
 
             coltest c = new coltest();
             c.name = "aaa";
             c.nv = nv;
             c.sd = sd;
-            s = fastBinaryJSON.BJSON.Instance.ToBJSON(c);
-            var ooo = fastBinaryJSON.BJSON.Instance.ToObject(s);
+            s = fastBinaryJSON.BJSON.ToBJSON(c);
+            var ooo = fastBinaryJSON.BJSON.ToObject(s);
             Assert.AreEqual("a", (ooo as coltest).nv["1"]);
             Assert.AreEqual("b", (ooo as coltest).sd["2"]);
         }
@@ -744,8 +745,8 @@ namespace UnitTests
         [Test]
         public static void consttest()
         {
-            var s = BJSON.Instance.ToBJSON(new constch());
-            var o = BJSON.Instance.ToObject(s);
+            var s = BJSON.ToBJSON(new constch());
+            var o = BJSON.ToObject(s);
         }
 
         public class ignoreatt : Attribute
@@ -768,14 +769,14 @@ namespace UnitTests
         public static void IgnoreAttributes()
         {
             var i = new ignore { Age1 = 10, Age2 = 20, Name = "aa" };
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(i);
-            var o = fastBinaryJSON.BJSON.Instance.ToObject<ignore>(s);
+            var s = fastBinaryJSON.BJSON.ToBJSON(i);
+            var o = fastBinaryJSON.BJSON.ToObject<ignore>(s);
             Assert.AreEqual(0,o.Age1);
             i = new ignore1 { Age1 = 10, Age2 = 20, Name = "bb" };
             var j = new BJSONParameters();
             j.IgnoreAttributes.Add(typeof(ignoreatt));
-            s = fastBinaryJSON.BJSON.Instance.ToBJSON(i, j);
-            var oo = fastBinaryJSON.BJSON.Instance.ToObject<ignore1>(s);
+            s = fastBinaryJSON.BJSON.ToBJSON(i, j);
+            var oo = fastBinaryJSON.BJSON.ToObject<ignore1>(s);
             Assert.AreEqual(0, oo.Age1);
             Assert.AreEqual(0, oo.Age2);
         }
@@ -791,17 +792,49 @@ namespace UnitTests
         public static void NonDefaultConstructor()
         {
             var o = new nondefaultctor(10);
-            fastBinaryJSON.BJSON.Instance.Parameters.ParametricConstructorOverride = true;
-            var s = fastBinaryJSON.BJSON.Instance.ToBJSON(o);
+            //fastBinaryJSON.BJSON.Parameters.ParametricConstructorOverride = true;
+            var s = fastBinaryJSON.BJSON.ToBJSON(o);
             Console.WriteLine(s);
-            var obj = fastBinaryJSON.BJSON.Instance.ToObject<nondefaultctor>(s);
+            var obj = fastBinaryJSON.BJSON.ToObject<nondefaultctor>(s, new BJSONParameters { ParametricConstructorOverride = true });
             Assert.AreEqual(10, obj.age);
             List<nondefaultctor> l = new List<nondefaultctor> { o, o, o };
-            s = fastBinaryJSON.BJSON.Instance.ToBJSON(l);
-            var obj2 = fastBinaryJSON.BJSON.Instance.ToObject<List<nondefaultctor>>(s);
+            s = fastBinaryJSON.BJSON.ToBJSON(l);
+            var obj2 = fastBinaryJSON.BJSON.ToObject<List<nondefaultctor>>(s, new BJSONParameters { ParametricConstructorOverride = true });
             Assert.AreEqual(3, obj2.Count);
             Assert.AreEqual(10, obj2[1].age);
-            fastBinaryJSON.BJSON.Instance.Parameters.ParametricConstructorOverride = false;
+            //fastBinaryJSON.BJSON.Parameters.ParametricConstructorOverride = false;
+        }
+
+        public class o1
+        {
+            public int o1int;
+            public o2 o2obj;
+            public o3 child;
+        }
+        public class o2
+        {
+            public int o2int;
+            public o1 parent;
+        }
+        public class o3
+        {
+            public int o3int;
+            public o2 child;
+        }
+
+
+        [Test]
+        public static void CircularReferences()
+        {
+            var o = new o1 { o1int = 1, child = new o3 { o3int = 3 }, o2obj = new o2 { o2int = 2 } };
+            o.o2obj.parent = o;
+            o.child.child = o.o2obj;
+
+            var s = BJSON.ToBJSON(o, new BJSONParameters());
+            //Console.WriteLine(BJSON.Beautify(s));
+            var p = BJSON.ToObject<o1>(s);
+            Assert.AreEqual(p, p.o2obj.parent);
+            Assert.AreEqual(p.o2obj, p.child.child);
         }
     }
 }

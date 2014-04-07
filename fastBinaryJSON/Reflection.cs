@@ -67,15 +67,22 @@ namespace fastBinaryJSON
 
     internal sealed class Reflection
     {
-        public readonly static Reflection Instance = new Reflection();
+        // Sinlgeton pattern 4 from : http://csharpindepth.com/articles/general/singleton.aspx
+        private static readonly Reflection instance = new Reflection();
+        // Explicit static constructor to tell C# compiler
+        // not to mark type as beforefieldinit
+        static Reflection()
+        {
+        }
         private Reflection()
         {
         }
+        public static Reflection Instance { get { return instance; } }
 
         internal delegate object GenericSetter(object target, object value);
         internal delegate object GenericGetter(object obj);
         private delegate object CreateObject();
-        
+
         private SafeDictionary<Type, string> _tyname = new SafeDictionary<Type, string>();
         private SafeDictionary<string, Type> _typecache = new SafeDictionary<string, Type>();
         private SafeDictionary<Type, CreateObject> _constrcache = new SafeDictionary<Type, CreateObject>();
@@ -84,6 +91,38 @@ namespace fastBinaryJSON
         private SafeDictionary<Type, Type[]> _genericTypes = new SafeDictionary<Type, Type[]>();
         private SafeDictionary<Type, Type> _genericTypeDef = new SafeDictionary<Type, Type>();
 
+        #region bjson custom type
+        internal SafeDictionary<Type, Serialize> _customSerializer = new SafeDictionary<Type, Serialize>();
+        internal SafeDictionary<Type, Deserialize> _customDeserializer = new SafeDictionary<Type, Deserialize>();
+        internal UnicodeEncoding unicode = new UnicodeEncoding();
+        internal UTF8Encoding utf8 = new UTF8Encoding();
+
+        internal object CreateCustom(string v, Type type)
+        {
+            Deserialize d;
+            _customDeserializer.TryGetValue(type, out d);
+            return d(v);
+        }
+
+        internal void RegisterCustomType(Type type, Serialize serializer, Deserialize deserializer)
+        {
+            if (type != null && serializer != null && deserializer != null)
+            {
+                _customSerializer.Add(type, serializer);
+                _customDeserializer.Add(type, deserializer);
+                // reset property cache
+                Reflection.Instance.ResetPropertyCache();// _propertycache = new SafeDictionary<string, SafeDictionary<string, myPropInfo>>();
+            }
+        }
+
+        internal bool IsBjsonTypeRegistered(Type t)
+        {
+            if (_customSerializer.Count == 0)
+                return false;
+            Serialize s;
+            return _customSerializer.TryGetValue(t, out s);
+        }
+        #endregion
         public Type GetGenericTypeDefinition(Type t)
         {
             Type tt = null;
@@ -94,7 +133,7 @@ namespace fastBinaryJSON
                 tt = t.GetGenericTypeDefinition();
                 _genericTypeDef.Add(t, tt);
                 return tt;
-            } 
+            }
         }
 
         public Type[] GetGenericArguments(Type t)
@@ -259,7 +298,7 @@ namespace fastBinaryJSON
                 }
                 else
                 {
-                    if (objtype.IsClass) 
+                    if (objtype.IsClass)
                     {
                         DynamicMethod dynMethod = new DynamicMethod("_", objtype, null);
                         ILGenerator ilGen = dynMethod.GetILGenerator();
@@ -302,7 +341,7 @@ namespace fastBinaryJSON
 
             if (!type.IsClass) // structs
             {
-                var lv = il.DeclareLocal(type); 
+                var lv = il.DeclareLocal(type);
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Unbox_Any, type);
                 il.Emit(OpCodes.Stloc_0);
@@ -344,7 +383,7 @@ namespace fastBinaryJSON
 
             if (!type.IsClass) // structs
             {
-                var lv = il.DeclareLocal(type); 
+                var lv = il.DeclareLocal(type);
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Unbox_Any, type);
                 il.Emit(OpCodes.Stloc_0);

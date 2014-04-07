@@ -55,7 +55,7 @@ namespace fastBinaryJSON
         private string ParseName()
         {
             byte c = json[index++];
-            string s = BJSON.Instance.utf8.GetString(json, index, c);
+            string s = Reflection.Instance.utf8.GetString(json, index, c);
             index += c;
             return s;
         }
@@ -222,7 +222,7 @@ namespace fastBinaryJSON
             int c = Helper.ToInt32(json, index);
             index += 4;
 
-            string s = BJSON.Instance.unicode.GetString(json, index, c);
+            string s = Reflection.Instance.unicode.GetString(json, index, c);
             index += c;
             return s;
         }
@@ -232,7 +232,7 @@ namespace fastBinaryJSON
             int c = Helper.ToInt32(json, index);
             index += 4;
 
-            string s = BJSON.Instance.utf8.GetString(json, index, c);
+            string s = Reflection.Instance.utf8.GetString(json, index, c);
             index += c;
             return s;
         }
