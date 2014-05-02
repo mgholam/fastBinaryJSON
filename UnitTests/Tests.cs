@@ -822,7 +822,6 @@ namespace UnitTests
             public o2 child;
         }
 
-
         [Test]
         public static void CircularReferences()
         {
@@ -835,6 +834,39 @@ namespace UnitTests
             var p = BJSON.ToObject<o1>(s);
             Assert.AreEqual(p, p.o2obj.parent);
             Assert.AreEqual(p.o2obj, p.child.child);
+        }
+
+        public class lol
+        {
+            public List<List<object>> r;
+        }
+        public class lol2
+        {
+            public List<object[]> r;
+        }
+        [Test]
+        public static void ListOfList()
+        {
+            var o = new List<List<object>> { new List<object> { 1, 2, 3 }, new List<object> { "aa", 3, "bb" } };
+            var s = fastBinaryJSON.BJSON.ToBJSON(o);
+            //Console.WriteLine(s);
+            var i = fastBinaryJSON.BJSON.ToObject(s);
+            var p = new lol { r = o };
+            s = fastBinaryJSON.BJSON.ToBJSON(p);
+            //Console.WriteLine(s);
+            i = fastBinaryJSON.BJSON.ToObject(s);
+            Assert.AreEqual(3, (i as lol).r[0].Count);
+
+            var oo = new List<object[]> { new object[] { 1, 2, 3 }, new object[] { "a", 4, "b" } };
+            s = fastBinaryJSON.BJSON.ToBJSON(oo);
+            //Console.WriteLine(s);
+            var ii = fastBinaryJSON.BJSON.ToObject(s);
+            lol2 l = new lol2() { r = oo };
+
+            s = fastBinaryJSON.BJSON.ToBJSON(l);
+            //Console.WriteLine(s);
+            var iii = fastBinaryJSON.BJSON.ToObject(s);
+            Assert.AreEqual(3, (iii as lol2).r[0].Length);
         }
     }
 }

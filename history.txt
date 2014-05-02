@@ -1,3 +1,9 @@
+v1.4.1
+------
+- bug fix obj.List<List<object>> and obj.List<object[]> 
+- added code intellisense help for methods
+- added ClearReflectionCache() to reset all internal structures
+
 v1.4.0
 ------
 - *breaking change* : removed the BJSON.Instance singleton 

@@ -22,7 +22,7 @@ namespace fastBinaryJSON
         private Dictionary<string, int> _globalTypes = new Dictionary<string, int>();
         private Dictionary<object, int> _cirobj = new Dictionary<object, int>();
         private BJSONParameters _params;
-        private bool _circular = false;
+        //private bool _circular = false;
 
         internal BJSONSerializer(BJSONParameters param)
         {
@@ -32,15 +32,15 @@ namespace fastBinaryJSON
         internal byte[] ConvertToBJSON(object obj)
         {
             WriteValue(obj);
-            if (_circular)
-            {
-                _before.WriteByte(TOKENS.NAME);
-                byte[] b = Reflection.Instance.utf8.GetBytes("$circular");
-                _before.WriteByte((byte)b.Length);
-                _before.Write(b, 0, b.Length % 256);
-                _before.WriteByte(TOKENS.COLON);
-                _before.WriteByte(TOKENS.TRUE);
-            }
+            //if (_circular)
+            //{
+            //    _before.WriteByte(TOKENS.NAME);
+            //    byte[] b = Reflection.Instance.utf8.GetBytes("$circular");
+            //    _before.WriteByte((byte)b.Length);
+            //    _before.Write(b, 0, b.Length % 256);
+            //    _before.WriteByte(TOKENS.COLON);
+            //    _before.WriteByte(TOKENS.TRUE);
+            //}
             // add $types
             if (_params.UsingGlobalTypes && _globalTypes != null && _globalTypes.Count>0)
             {
@@ -446,7 +446,7 @@ namespace fastBinaryJSON
             {
                 if (_current_depth > 0)
                 {
-                    _circular = true;
+                    //_circular = true;
                     _output.WriteByte(TOKENS.DOC_START);
                     WriteName("$i");
                     WriteColon();

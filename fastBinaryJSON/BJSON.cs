@@ -104,28 +104,53 @@ namespace fastBinaryJSON
 
     public static class BJSON
     {
+        /// <summary>
+        /// Globally set-able parameters for controlling the serializer
+        /// </summary>
         public static BJSONParameters Parameters = new BJSONParameters();
-
+        /// <summary>
+        /// Parse a json and generate a Dictionary&lt;string,object&gt; or List&lt;object&gt; structure
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
         public static object Parse(byte[] json)
         {
             return new BJsonParser(json, Parameters.UseUTCDateTime).Decode();
         }
-
+        /// <summary>
+        /// Create a .net4 dynamic object from the binary json byte array
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
         public static dynamic ToDynamic(byte[] json)
         {
             return new DynamicJson(json);
         }
-
+        /// <summary>
+        /// Register custom type handlers for your own types not natively handled by fastBinaryJSON
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="serializer"></param>
+        /// <param name="deserializer"></param>
         public static void RegisterCustomType(Type type, Serialize serializer, Deserialize deserializer)
         {
             Reflection.Instance.RegisterCustomType(type, serializer, deserializer);
         }
-
+        /// <summary>
+        /// Create a binary json representation for an object
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public static byte[] ToBJSON(object obj)
         {
             return ToBJSON(obj, Parameters);
         }
-
+        /// <summary>
+        /// Create a binary json representation for an object with parameter override on this call
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public static byte[] ToBJSON(object obj, BJSONParameters param)
         {
             param.FixValues();
@@ -141,36 +166,82 @@ namespace fastBinaryJSON
 
             return new BJSONSerializer(param).ConvertToBJSON(obj);
         }
-
+        /// <summary>
+        /// Fill a given object with the binary json represenation
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="json"></param>
+        /// <returns></returns>
         public static object FillObject(object input, byte[] json)
         {
             return new deserializer(Parameters).FillObject(input, json);
         }
-
+        /// <summary>
+        /// Create a generic object from the json
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="json"></param>
+        /// <returns></returns>
         public static T ToObject<T>(byte[] json)
         {
             return new deserializer(Parameters).ToObject<T>(json);
         }
-
+        /// <summary>
+        /// Create a generic object from the json with parameter override on this call
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="json"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public static T ToObject<T>(byte[] json, BJSONParameters param)
         {
             return new deserializer(param).ToObject<T>(json);
         }
-
+        /// <summary>
+        /// Create an object from the json 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
         public static  object ToObject(byte[] json)
         {
             return new deserializer(Parameters).ToObject(json, null);
         }
-
+        /// <summary>
+        /// Create an object from the json with parameter override on this call
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public static object ToObject(byte[] json, BJSONParameters param)
         {
             param.FixValues();
             return new deserializer(param).ToObject(json, null);
         }
-
+        /// <summary>
+        /// Create a typed object from the json
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static object ToObject(byte[] json, Type type)
         {
             return new deserializer(Parameters).ToObject(json, type);
+        }
+        /// <summary>
+        /// Clear the internal reflection cache so you can start from new (you will loose performance)
+        /// </summary>
+        public static void ClearReflectionCache()
+        {
+            Reflection.Instance.ClearReflectionCache();
+        }        
+        /// <summary>
+        /// Deep copy an object i.e. clone to a new object
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static object DeepCopy(object obj)
+        {
+            return new deserializer(Parameters).ToObject(ToBJSON(obj));
         }
     }
 
@@ -184,7 +255,7 @@ namespace fastBinaryJSON
         private BJSONParameters _params;
         private Dictionary<object, int> _circobj = new Dictionary<object, int>();
         private Dictionary<int, object> _cirrev = new Dictionary<int, object>();
-        private bool _circular = false;
+        //private bool _circular = false;
 
 
         public T ToObject<T>(byte[] json)
@@ -338,8 +409,8 @@ namespace fastBinaryJSON
                 return CreateNV(d);
             if (type == typeof(StringDictionary))
                 return CreateSD(d);
-            if (_circular == false)
-                _circular = d.TryGetValue("$circular", out tn);
+            //if (_circular == false)
+            //    _circular = d.TryGetValue("$circular", out tn);
 
             if (d.TryGetValue("$i", out tn))
             {
@@ -389,7 +460,7 @@ namespace fastBinaryJSON
                 else
                     o = Reflection.Instance.FastCreateInstance(type);
             }
-            if (_circular)
+            //if (_circular)
             {
                 int i = 0;
                 if (_circobj.TryGetValue(o, out i) == false)
@@ -518,7 +589,12 @@ namespace fastBinaryJSON
                     col.Add(ParseDictionary((Dictionary<string, object>)ob, globalTypes, bt, null));
 
                 else if (ob is List<object>)
-                    col.Add(((List<object>)ob).ToArray());
+                {
+                    if (bt.IsGenericType)
+                        col.Add((List<object>)ob);//).ToArray());
+                    else
+                        col.Add(((List<object>)ob).ToArray());
+                }
 
                 else
                     col.Add(ob);
