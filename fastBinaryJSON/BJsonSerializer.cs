@@ -512,7 +512,7 @@ namespace fastBinaryJSON
                     append = true;
                 }
             }
-            _current_depth--;
+            //_current_depth--;
             _output.WriteByte(TOKENS.DOC_END);
             _current_depth--;
         }

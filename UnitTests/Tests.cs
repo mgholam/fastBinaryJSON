@@ -868,5 +868,64 @@ namespace UnitTests
             var iii = fastBinaryJSON.BJSON.ToObject(s);
             Assert.AreEqual(3, (iii as lol2).r[0].Length);
         }
+
+        public class Y
+        {
+            public byte[] BinaryData;
+        }
+
+        public class A
+        {
+            public int DataA;
+            public A NextA;
+        }
+
+        public class B : A
+        {
+            public string DataB;
+        }
+
+        public class C : A
+        {
+            public DateTime DataC;
+        }
+
+        public class Root
+        {
+            public Y TheY;
+            public List<A> ListOfAs = new List<A>();
+            public string UnicodeText;
+            public Root NextRoot;
+            public int MagicInt { get; set; }
+            public A TheReferenceA;
+
+            public void SetMagicInt(int value)
+            {
+                MagicInt = value;
+            }
+        }
+
+        [Test]
+        public static void complexobject()
+        {
+            Root r = new Root();
+            r.TheY = new Y { BinaryData = new byte[] { 0xDE, 0xAD, 0xBE, 0xEF } };
+            r.ListOfAs.Add(new A { DataA = 10 });
+            r.ListOfAs.Add(new B { DataA = 20, DataB = "Hello" });
+            r.ListOfAs.Add(new C { DataA = 30, DataC = DateTime.Today });
+            r.UnicodeText = "Žlutý kůň ∊ WORLD";
+            r.ListOfAs[2].NextA = r.ListOfAs[1];
+            r.ListOfAs[1].NextA = r.ListOfAs[2];
+            r.TheReferenceA = r.ListOfAs[2];
+            r.NextRoot = r;
+
+
+            Console.WriteLine("JSON:\n---\n{0}\n---", BJSON.ToBJSON(r));
+
+            Console.WriteLine();
+
+            Console.WriteLine("Nice JSON:\n---\n{0}\n---", BJSON.ToBJSON(BJSON.ToObject<Root>(BJSON.ToBJSON(r))));
+        }
+
     }
 }

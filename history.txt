@@ -1,3 +1,7 @@
+v1.4.2
+------
+- bug fix circular references
+
 v1.4.1
 ------
 - bug fix obj.List<List<object>> and obj.List<object[]> 
