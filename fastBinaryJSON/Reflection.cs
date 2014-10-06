@@ -63,6 +63,7 @@ namespace fastBinaryJSON
         public bool IsClass;
         public bool IsValueType;
         public bool IsGenericType;
+        public bool IsStruct;
     }
 
     internal sealed class Reflection
@@ -224,9 +225,11 @@ namespace fastBinaryJSON
             else if (t == typeof(DataSet)) d_type = myPropInfoType.DataSet;
             else if (t == typeof(DataTable)) d_type = myPropInfoType.DataTable;
 #endif
-
             else if (customType)
                 d_type = myPropInfoType.Custom;
+
+            if (t.IsValueType && !t.IsPrimitive && !t.IsEnum && t != typeof(decimal))
+                d.IsStruct = true;
 
             d.IsClass = t.IsClass;
             d.IsValueType = t.IsValueType;

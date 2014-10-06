@@ -927,5 +927,26 @@ namespace UnitTests
             Console.WriteLine("Nice JSON:\n---\n{0}\n---", BJSON.ToBJSON(BJSON.ToObject<Root>(BJSON.ToBJSON(r))));
         }
 
+
+        public struct Foo
+        {
+            public string name;
+        };
+
+        public class Bar
+        {
+            public Foo foo;
+        };
+
+        [Test]
+        public static void StructProperty()
+        {
+            Bar b = new Bar();
+            b.foo = new Foo();
+            b.foo.name = "Buzz";
+            var json = fastBinaryJSON.BJSON.ToBJSON(b);
+            Bar bar = fastBinaryJSON.BJSON.ToObject<Bar>(json);
+        }
+
     }
 }

@@ -517,7 +517,7 @@ namespace fastBinaryJSON
                                 {
                                     if (pi.IsGenericType && pi.IsValueType == false)
                                         oset = CreateGenericList((List<object>)v, pi.pt, pi.bt, globaltypes);
-                                    else if (pi.IsClass && v is Dictionary<string, object>)
+                                    else if ((pi.IsClass || pi.IsStruct) && v is Dictionary<string, object>)
                                         oset = ParseDictionary((Dictionary<string, object>)v, globaltypes, pi.pt, input);
 
                                     else if (v is List<object>)
