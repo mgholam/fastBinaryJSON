@@ -477,7 +477,7 @@ namespace fastBinaryJSON
                 myPropInfo pi;
                 if (props.TryGetValue(name, out pi) == false)
                     continue;
-                if ((pi.Flags & (myPropInfoFlags.Filled | myPropInfoFlags.CanWrite)) != 0) 
+                if (pi.CanWrite)// (pi.Flags & (myPropInfoFlags.Filled | myPropInfoFlags.CanWrite)) != 0) 
                 {
                     object v = d[name];
 

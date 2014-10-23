@@ -1,3 +1,8 @@
+v1.4.4
+------
+- bug fix deserialize private set and no set properties 
+- added ReadonlyTest() test for the above 
+
 v1.4.3
 ------
 - bug fix deserializing a struct property in a class

@@ -948,5 +948,24 @@ namespace UnitTests
             Bar bar = fastBinaryJSON.BJSON.ToObject<Bar>(json);
         }
 
+        public class readonlyclass
+        {
+            public readonlyclass()
+            {
+                ROName = "bb";
+                Age = 10;
+            }
+            private string _ro = "aa";
+            public string ROAddress { get { return _ro; } }
+            public string ROName { get; private set; }
+            public int Age { get; set; }
+        }
+
+        [Test]
+        public static void ReadonlyTest()
+        {
+            var s = fastBinaryJSON.BJSON.ToBJSON(new readonlyclass(), new BJSONParameters { ShowReadOnlyProperties = true });
+            var o = fastBinaryJSON.BJSON.ToObject(s);
+        }
     }
 }
