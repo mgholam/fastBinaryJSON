@@ -6,16 +6,16 @@ using System.Reflection;
 using System.Collections;
 using System.Collections.Specialized;
 using System.Data;
-using System.Collections.Specialized;
 
 namespace fastBinaryJSON
 {
     internal struct Getters
     {
         public string Name;
+        public string lcName;
         public Reflection.GenericGetter Getter;
-        //public Type propertyType;
     }
+
     internal enum myPropInfoType
     {
         Int,
@@ -41,13 +41,6 @@ namespace fastBinaryJSON
         Unknown,
     }
 
-    //[Flags]
-    //internal enum myPropInfoFlags
-    //{
-    //    Filled = 1,// << 0,
-    //    CanWrite = 2//1 << 1
-    //}
-
     internal struct myPropInfo
     {
         public Type pt;
@@ -58,7 +51,6 @@ namespace fastBinaryJSON
         public Type[] GenericTypes;
         public string Name;
         public myPropInfoType Type;
-        //public myPropInfoFlags Flags;
         public bool CanWrite;
 
         public bool IsClass;
@@ -117,7 +109,7 @@ namespace fastBinaryJSON
             }
         }
 
-        internal bool IsBjsonTypeRegistered(Type t)
+        internal bool IsTypeRegistered(Type t)
         {
             if (_customSerializer.Count == 0)
                 return false;
@@ -125,6 +117,7 @@ namespace fastBinaryJSON
             return _customSerializer.TryGetValue(t, out s);
         }
         #endregion
+
         public Type GetGenericTypeDefinition(Type t)
         {
             Type tt = null;
@@ -151,7 +144,7 @@ namespace fastBinaryJSON
             }
         }
 
-        public Dictionary<string, myPropInfo> Getproperties(Type type, string typename, bool IgnoreCaseOnDeserialize, bool customType)
+        public Dictionary<string, myPropInfo> Getproperties(Type type, string typename, bool customType)
         {
             Dictionary<string, myPropInfo> sd = null;
             if (_propertycache.TryGetValue(typename, out sd))
@@ -161,32 +154,33 @@ namespace fastBinaryJSON
             else
             {
                 sd = new Dictionary<string, myPropInfo>();
-                PropertyInfo[] pr = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                PropertyInfo[] pr = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
                 foreach (PropertyInfo p in pr)
                 {
+                    if (p.GetIndexParameters().Length > 0)
+                    {// Property is an indexer
+                        continue;
+                    }
                     myPropInfo d = CreateMyProp(p.PropertyType, p.Name, customType);
-                    //if (p.CanWrite)
-                    //    d.Flags |= myPropInfoFlags.CanWrite;
+
                     d.setter = Reflection.CreateSetMethod(type, p);
                     if (d.setter != null)
-                        d.CanWrite = true;// Flags |= myPropInfoFlags.CanWrite;
+                        d.CanWrite = true;
                     d.getter = Reflection.CreateGetMethod(type, p);
-                    if (IgnoreCaseOnDeserialize)
-                        sd.Add(p.Name.ToLower(), d);
-                    else
-                        sd.Add(p.Name, d);
+                    sd.Add(p.Name.ToLower(), d);
                 }
-                FieldInfo[] fi = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+                FieldInfo[] fi = type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
                 foreach (FieldInfo f in fi)
                 {
                     myPropInfo d = CreateMyProp(f.FieldType, f.Name, customType);
-                    d.CanWrite = true;// Flags |= myPropInfoFlags.CanWrite;
-                    d.setter = Reflection.CreateSetField(type, f);
-                    d.getter = Reflection.CreateGetField(type, f);
-                    if (IgnoreCaseOnDeserialize)
+                    if (f.IsLiteral == false)
+                    {
+                        d.setter = Reflection.CreateSetField(type, f);
+                        if (d.setter != null)
+                            d.CanWrite = true;
+                        d.getter = Reflection.CreateGetField(type, f);
                         sd.Add(f.Name.ToLower(), d);
-                    else
-                        sd.Add(f.Name, d);
+                    }
                 }
 
                 _propertycache.Add(typename, sd);
@@ -198,7 +192,6 @@ namespace fastBinaryJSON
         {
             myPropInfo d = new myPropInfo();
             myPropInfoType d_type = myPropInfoType.Unknown;
-            //myPropInfoFlags d_flags = myPropInfoFlags.Filled ;//| myPropInfoFlags.CanWrite;
 
             if (t == typeof(int) || t == typeof(int?)) d_type = myPropInfoType.Int;
             else if (t == typeof(long) || t == typeof(long?)) d_type = myPropInfoType.Long;
@@ -248,7 +241,6 @@ namespace fastBinaryJSON
             d.Name = name;
             d.changeType = GetChangeType(t);
             d.Type = d_type;
-            //d.Flags = d_flags;
 
             return d;
         }
@@ -488,21 +480,25 @@ namespace fastBinaryJSON
             return (GenericGetter)getter.CreateDelegate(typeof(GenericGetter));
         }
 
-        internal Getters[] GetGetters(Type type, BJSONParameters param)
+        internal Getters[] GetGetters(Type type, bool ShowReadOnlyProperties, List<Type> IgnoreAttributes)//JSONParameters param)
         {
             Getters[] val = null;
             if (_getterscache.TryGetValue(type, out val))
                 return val;
 
-            PropertyInfo[] props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            PropertyInfo[] props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
             List<Getters> getters = new List<Getters>();
             foreach (PropertyInfo p in props)
             {
-                if (!p.CanWrite && param.ShowReadOnlyProperties == false) continue;
-                if (param.IgnoreAttributes != null)
+                if (p.GetIndexParameters().Length > 0)
+                {// Property is an indexer
+                    continue;
+                }
+                if (!p.CanWrite && ShowReadOnlyProperties == false) continue;
+                if (IgnoreAttributes != null)
                 {
                     bool found = false;
-                    foreach (var ignoreAttr in param.IgnoreAttributes)
+                    foreach (var ignoreAttr in IgnoreAttributes)
                     {
                         if (p.IsDefined(ignoreAttr, false))
                         {
@@ -515,16 +511,16 @@ namespace fastBinaryJSON
                 }
                 GenericGetter g = CreateGetMethod(type, p);
                 if (g != null)
-                    getters.Add(new Getters { Getter = g, Name = p.Name });
+                    getters.Add(new Getters { Getter = g, Name = p.Name, lcName = p.Name.ToLower() });
             }
 
-            FieldInfo[] fi = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
+            FieldInfo[] fi = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.Static);
             foreach (var f in fi)
             {
-                if (param.IgnoreAttributes != null)
+                if (IgnoreAttributes != null)
                 {
                     bool found = false;
-                    foreach (var ignoreAttr in param.IgnoreAttributes)
+                    foreach (var ignoreAttr in IgnoreAttributes)
                     {
                         if (f.IsDefined(ignoreAttr, false))
                         {
@@ -535,12 +531,13 @@ namespace fastBinaryJSON
                     if (found)
                         continue;
                 }
-
-                GenericGetter g = CreateGetField(type, f);
-                if (g != null)
-                    getters.Add(new Getters { Getter = g, Name = f.Name });
+                if (f.IsLiteral == false)
+                {
+                    GenericGetter g = CreateGetField(type, f);
+                    if (g != null)
+                        getters.Add(new Getters { Getter = g, Name = f.Name, lcName = f.Name.ToLower() });
+                }
             }
-
             val = getters.ToArray();
             _getterscache.Add(type, val);
             return val;

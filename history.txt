@@ -1,3 +1,12 @@
+v1.4.6
+------
+- bug fix serializing static fields and properties
+- skip indexer properties on objects (thanks to scymen)
+
+v1.4.5
+------
+- code sync reflection.cs with fastJSON v2.1.7
+
 v1.4.4
 ------
 - bug fix deserialize private set and no set properties 
