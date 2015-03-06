@@ -967,5 +967,31 @@ namespace UnitTests
             var s = fastBinaryJSON.BJSON.ToBJSON(new readonlyclass(), new BJSONParameters { ShowReadOnlyProperties = true });
             var o = fastBinaryJSON.BJSON.ToObject(s);
         }
+
+        public class InstrumentSettings
+        {
+            public string dataProtocol { get; set; }
+            public static bool isBad { get; set; }
+            public static bool isOk;
+
+            public InstrumentSettings()
+            {
+                dataProtocol = "Wireless";
+            }
+        }
+
+        [Test]
+        public static void statictest()
+        {
+            var s = new InstrumentSettings();
+            BJSONParameters pa = new BJSONParameters();
+            pa.UseExtensions = false;
+            InstrumentSettings.isOk = true;
+            InstrumentSettings.isBad = true;
+
+            var jsonStr = BJSON.ToBJSON(s, pa);
+
+            var o = BJSON.ToObject<InstrumentSettings>(jsonStr);
+        }
     }
 }
