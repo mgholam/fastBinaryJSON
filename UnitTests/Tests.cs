@@ -242,9 +242,9 @@ namespace UnitTests
         [Test]
         public static void objectarray()
         {
-            var o = new object[3] { 1, "sdfsdfs", DateTime.Now};
+            var o = new object[3] { 1, "sdfsdfs", DateTime.Now };
             var b = fastBinaryJSON.BJSON.ToBJSON(o);
-            var s = fastBinaryJSON.BJSON.ToObject(b); 
+            var s = fastBinaryJSON.BJSON.ToObject(b);
         }
 
         [Test]
@@ -522,7 +522,7 @@ namespace UnitTests
         [Test]
         public static void Speed_Test_Deserialize()
         {
-            
+
             Console.Write("fastbinaryjson deserialize");
             colclass c = CreateObject();
             double t = 0;
@@ -602,8 +602,8 @@ namespace UnitTests
 
             Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en");
         }
-		
-	    public class arrayclass
+
+        public class arrayclass
         {
             public int[] ints { get; set; }
             public string[] strs;
@@ -613,12 +613,12 @@ namespace UnitTests
         {
             arrayclass a = new arrayclass();
             a.ints = new int[] { 3, 1, 4 };
-            a.strs = new string[] {"a","b","c"};
+            a.strs = new string[] { "a", "b", "c" };
             var s = fastBinaryJSON.BJSON.ToBJSON(a);
             var o = fastBinaryJSON.BJSON.ToObject(s);
         }
-		
-		[Test]
+
+        [Test]
         public static void Datasets()
         {
             var ds = CreateDataset();
@@ -646,7 +646,7 @@ namespace UnitTests
 
             byte[] b = fastBinaryJSON.BJSON.ToBJSON(
                 obj,
-                new fastBinaryJSON.BJSONParameters { UseExtensions = false, EnableAnonymousTypes= true });
+                new fastBinaryJSON.BJSONParameters { UseExtensions = false, EnableAnonymousTypes = true });
             dynamic d = fastBinaryJSON.BJSON.ToDynamic(b);
             var ss = d.Name;
             var oo = d.Age;
@@ -771,7 +771,7 @@ namespace UnitTests
             var i = new ignore { Age1 = 10, Age2 = 20, Name = "aa" };
             var s = fastBinaryJSON.BJSON.ToBJSON(i);
             var o = fastBinaryJSON.BJSON.ToObject<ignore>(s);
-            Assert.AreEqual(0,o.Age1);
+            Assert.AreEqual(0, o.Age1);
             i = new ignore1 { Age1 = 10, Age2 = 20, Name = "bb" };
             var j = new BJSONParameters();
             j.IgnoreAttributes.Add(typeof(ignoreatt));
@@ -992,6 +992,77 @@ namespace UnitTests
             var jsonStr = BJSON.ToBJSON(s, pa);
 
             var o = BJSON.ToObject<InstrumentSettings>(jsonStr);
+        }
+
+        public class arrayclass2
+        {
+            public int[] ints { get; set; }
+            public string[] strs;
+            public int[][] int2d { get; set; }
+            public int[][][] int3d;
+            public baseclass[][] class2d;
+        }
+
+        [Test]
+        public static void ArrayTest2()
+        {
+            arrayclass2 a = new arrayclass2();
+            a.ints = new int[] { 3, 1, 4 };
+            a.strs = new string[] { "a", "b", "c" };
+            a.int2d = new int[][] { new int[] { 1, 2, 3 }, new int[] { 2, 3, 4 } };
+            a.int3d = new int[][][] {        new int[][] { 
+            new int[] { 0, 0, 1 },
+            new int[] { 0, 1, 0 }
+        },
+        null,
+        new int[][] { 
+            new int[] { 0, 0, 2 },
+            new int[] { 0, 2, 0 },
+            null
+        }
+    };
+            a.class2d = new baseclass[][]{
+        new baseclass[] {
+            new baseclass () { Name = "a", Code = "A" },
+            new baseclass () { Name = "b", Code = "B" }
+        },
+        new baseclass[] {
+            new baseclass () { Name = "c" }
+        },
+        null
+    };
+            var s = BJSON.ToBJSON(a);
+            var o = BJSON.ToObject<arrayclass2>(s);
+            CollectionAssert.AreEqual(a.ints, o.ints);
+            CollectionAssert.AreEqual(a.strs, o.strs);
+            CollectionAssert.AreEqual(a.int2d[0], o.int2d[0]);
+            CollectionAssert.AreEqual(a.int2d[1], o.int2d[1]);
+            CollectionAssert.AreEqual(a.int3d[0][0], o.int3d[0][0]);
+            CollectionAssert.AreEqual(a.int3d[0][1], o.int3d[0][1]);
+            Assert.AreEqual(null, o.int3d[1]);
+            CollectionAssert.AreEqual(a.int3d[2][0], o.int3d[2][0]);
+            CollectionAssert.AreEqual(a.int3d[2][1], o.int3d[2][1]);
+            CollectionAssert.AreEqual(a.int3d[2][2], o.int3d[2][2]);
+            for (int i = 0; i < a.class2d.Length; i++)
+            {
+                var ai = a.class2d[i];
+                var oi = o.class2d[i];
+                if (ai == null && oi == null)
+                {
+                    continue;
+                }
+                for (int j = 0; j < ai.Length; j++)
+                {
+                    var aii = ai[j];
+                    var oii = oi[j];
+                    if (aii == null && oii == null)
+                    {
+                        continue;
+                    }
+                    Assert.AreEqual(aii.Name, oii.Name);
+                    Assert.AreEqual(aii.Code, oii.Code);
+                }
+            }
         }
     }
 }

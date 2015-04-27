@@ -565,8 +565,14 @@ namespace fastBinaryJSON
             for (int i = 0; i < data.Count; i++)// each (object ob in data)
             {
                 object ob = data[i];
+                if (ob == null)
+                {
+                    continue;
+                }
                 if (ob is IDictionary)
                     col.SetValue(ParseDictionary((Dictionary<string, object>)ob, globalTypes, bt, null), i);
+                else if (ob is ICollection)
+                    col.SetValue(CreateArray((List<object>)ob, bt, bt.GetElementType(), globalTypes), i);
                 else
                     col.SetValue(ob, i);
             }
