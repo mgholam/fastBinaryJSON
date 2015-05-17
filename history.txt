@@ -1,3 +1,9 @@
+v1.4.10
+-------
+- added BJSONParameters.SerializerMaxDepth
+- speed optimize (thanks to wmjordan)
+- added BJSONSerializer.Dispose() to get rid of compiler warnings
+
 v1.4.9
 ------
 - support for multidimensional arrays (thanks to wmjordan)
