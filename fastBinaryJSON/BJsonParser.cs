@@ -150,7 +150,9 @@ namespace fastBinaryJSON
 
         private object ParseChar()
         {
-            throw new NotImplementedException();
+            short u = (short)Helper.ToInt16(json, index);
+            index += 2;
+            return u;
         }
 
         private Guid ParseGuid()

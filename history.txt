@@ -1,3 +1,8 @@
+v1.4.11
+-------
+- added support for char type
+- dynamic object processing enhancements (thanks to Justin Dearing)
+
 v1.4.10
 -------
 - added BJSONParameters.SerializerMaxDepth
