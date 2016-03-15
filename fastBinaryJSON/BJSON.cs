@@ -4,12 +4,7 @@ using System.Collections.Generic;
 #if !SILVERLIGHT
 using System.Data;
 #endif
-using System.Globalization;
 using System.IO;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Xml;
-using System.Text;
 using System.Collections.Specialized;
 
 namespace fastBinaryJSON
@@ -121,6 +116,7 @@ namespace fastBinaryJSON
         {
             return new BJsonParser(json, Parameters.UseUTCDateTime).Decode();
         }
+#if net4
         /// <summary>
         /// Create a .net4 dynamic object from the binary json byte array
         /// </summary>
@@ -130,6 +126,7 @@ namespace fastBinaryJSON
         {
             return new DynamicJson(json);
         }
+#endif
         /// <summary>
         /// Register custom type handlers for your own types not natively handled by fastBinaryJSON
         /// </summary>
@@ -556,7 +553,7 @@ namespace fastBinaryJSON
 
         private object CreateEnum(Type pt, object v)
         {
-            // TODO : optimize create enum
+            // FEATURE : optimize create enum
 #if !SILVERLIGHT
             return Enum.Parse(pt, v.ToString());
 #else
@@ -566,6 +563,9 @@ namespace fastBinaryJSON
 
         private object CreateArray(List<object> data, Type pt, Type bt, Dictionary<string, object> globalTypes)
         {
+            if (bt == null)
+                bt = typeof(object);
+
             Array col = Array.CreateInstance(bt, data.Count);
             // create an array of objects
             for (int i = 0; i < data.Count; i++)// each (object ob in data)

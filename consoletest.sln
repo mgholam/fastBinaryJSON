@@ -1,12 +1,18 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-# SharpDevelop 4.2.0.8776-RC
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "consoletest", "consoletest\consoletest.csproj", "{6BADD8B3-618E-412A-BBCA-8420EFD5B62E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fastJSON", "fastBinaryJSON\fastBinaryJSON.csproj", "{207E91B1-C9F8-4913-88E1-3549EF5F3273}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fastBinaryJSON", "fastBinaryJSON\fastBinaryJSON.csproj", "{207E91B1-C9F8-4913-88E1-3549EF5F3273}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{F4BFF0D2-45F6-413B-B1E7-BC4A0D6596FC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6BADD8B3-618E-412A-BBCA-8420EFD5B62E} = {6BADD8B3-618E-412A-BBCA-8420EFD5B62E}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fastBinaryJSON net35", "fastBinaryJSON\fastBinaryJSON net35.csproj", "{A87C4070-065B-4012-9EF0-184AA60B5CC9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,9 +23,11 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{6BADD8B3-618E-412A-BBCA-8420EFD5B62E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BADD8B3-618E-412A-BBCA-8420EFD5B62E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BADD8B3-618E-412A-BBCA-8420EFD5B62E}.Debug|x86.ActiveCfg = Debug|x86
 		{6BADD8B3-618E-412A-BBCA-8420EFD5B62E}.Debug|x86.Build.0 = Debug|x86
 		{6BADD8B3-618E-412A-BBCA-8420EFD5B62E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BADD8B3-618E-412A-BBCA-8420EFD5B62E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6BADD8B3-618E-412A-BBCA-8420EFD5B62E}.Release|x86.ActiveCfg = Release|x86
 		{6BADD8B3-618E-412A-BBCA-8420EFD5B62E}.Release|x86.Build.0 = Release|x86
 		{207E91B1-C9F8-4913-88E1-3549EF5F3273}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -36,8 +44,12 @@ Global
 		{F4BFF0D2-45F6-413B-B1E7-BC4A0D6596FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4BFF0D2-45F6-413B-B1E7-BC4A0D6596FC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F4BFF0D2-45F6-413B-B1E7-BC4A0D6596FC}.Release|x86.ActiveCfg = Release|Any CPU
-		{6BADD8B3-618E-412A-BBCA-8420EFD5B62E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6BADD8B3-618E-412A-BBCA-8420EFD5B62E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A87C4070-065B-4012-9EF0-184AA60B5CC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A87C4070-065B-4012-9EF0-184AA60B5CC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A87C4070-065B-4012-9EF0-184AA60B5CC9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A87C4070-065B-4012-9EF0-184AA60B5CC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A87C4070-065B-4012-9EF0-184AA60B5CC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A87C4070-065B-4012-9EF0-184AA60B5CC9}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

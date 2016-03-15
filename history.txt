@@ -1,3 +1,8 @@
+v1.4.12
+-------
+- usings cleanup
+- bug fix : edge case CreateArray() bt is null -> default to typeof(object)
+
 v1.4.11
 -------
 - added support for char type
