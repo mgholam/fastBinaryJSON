@@ -48,7 +48,7 @@
     <OutputPath>..\output\net40\</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DefineConstants>net4</DefineConstants>
+    <DefineConstants>DEBUG;NET4</DefineConstants>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -71,7 +71,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;NET4</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>fastJSON.snk</AssemblyOriginatorKeyFile>

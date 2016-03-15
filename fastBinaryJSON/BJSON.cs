@@ -116,6 +116,7 @@ namespace fastBinaryJSON
         {
             return new BJsonParser(json, Parameters.UseUTCDateTime).Decode();
         }
+#if NET4
 #if net4
         /// <summary>
         /// Create a .net4 dynamic object from the binary json byte array
