@@ -1,3 +1,10 @@
+v1.4.13
+-------
+- bug fix ToObject<Dictionary<string, List<X>>>() (thanks to sleiN13)
+- bug fix CreateStringKeyDictionary() (thanks to John Earnshaw)
+- type access optimizations
+- test restructuring
+
 v1.4.12
 -------
 - usings cleanup

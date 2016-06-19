@@ -6,6 +6,7 @@ using System.Collections;
 using System.Threading;
 using fastBinaryJSON;
 using System.Collections.Specialized;
+using System.Diagnostics;
 
 namespace UnitTests
 {
@@ -15,8 +16,8 @@ namespace UnitTests
         static int count = 1000;
         static int tcount = 5;
         static DataSet ds = new DataSet();
-        static bool exotic = false;
-        static bool dsser = false;
+        //static bool exotic = false;
+        //static bool dsser = false;
 
         public enum Gender
         {
@@ -67,7 +68,7 @@ namespace UnitTests
 
         }
 
-        public static colclass CreateObject()
+        public static colclass CreateObject(bool exotic, bool dataset)
         {
             var c = new colclass();
 
@@ -84,8 +85,8 @@ namespace UnitTests
                 c.intDictionary = new Dictionary<int, baseclass>();
                 c.nullableDouble = 100.003;
 
-                if (dsser)
-                    c.dataset = ds;
+                if (dataset)
+                    c.dataset = CreateDataset();
                 c.nullableDecimal = 3.14M;
 
                 c.hash.Add(new class1("0", "hello", Guid.NewGuid()), new class2("1", "code", "desc"));
@@ -523,7 +524,7 @@ namespace UnitTests
         {
 
             Console.Write("fastbinaryjson deserialize");
-            colclass c = CreateObject();
+            colclass c = CreateObject(false, false);
             double t = 0;
             for (int pp = 0; pp < tcount; pp++)
             {
@@ -545,7 +546,7 @@ namespace UnitTests
         {
             Console.Write("fastbinaryjson serialize");
             //fastBinaryJSON.BJSON.Parameters.UsingGlobalTypes = false;
-            colclass c = CreateObject();
+            colclass c = CreateObject(false, false);
             double t = 0;
             for (int pp = 0; pp < tcount; pp++)
             {
@@ -1009,12 +1010,12 @@ namespace UnitTests
             a.ints = new int[] { 3, 1, 4 };
             a.strs = new string[] { "a", "b", "c" };
             a.int2d = new int[][] { new int[] { 1, 2, 3 }, new int[] { 2, 3, 4 } };
-            a.int3d = new int[][][] {        new int[][] { 
+            a.int3d = new int[][][] {        new int[][] {
             new int[] { 0, 0, 1 },
             new int[] { 0, 1, 0 }
         },
         null,
-        new int[][] { 
+        new int[][] {
             new int[] { 0, 0, 2 },
             new int[] { 0, 2, 0 },
             null
@@ -1063,5 +1064,62 @@ namespace UnitTests
                 }
             }
         }
+
+        [Test]
+        public static void Dictionary_String_Object_WithList()
+        {
+            Dictionary<string, object> dict = new Dictionary<string, object>();
+
+            dict.Add("C", new List<float>() { 1.1f, 2.2f, 3.3f });
+            var json = BJSON.ToBJSON(dict);
+
+            var des = BJSON.ToObject<Dictionary<string, List<float>>>(json);
+            Assert.IsInstanceOf(typeof(List<float>), des["C"]);
+        }
+
+        [Test]
+        public static void exotic_deserialize()
+        {
+            Console.WriteLine();
+            Console.Write("fastjson deserialize");
+            colclass c = CreateObject(true, true);
+            var stopwatch = new Stopwatch();
+            for (int pp = 0; pp < tcount; pp++)
+            {
+                colclass deserializedStore;
+                byte[] jsonText = null;
+
+                stopwatch.Restart();
+                jsonText = BJSON.ToBJSON(c);
+                //Console.WriteLine(" size = " + jsonText.Length);
+                for (int i = 0; i < count; i++)
+                {
+                    deserializedStore = (colclass)BJSON.ToObject(jsonText);
+                }
+                stopwatch.Stop();
+                Console.Write("\t" + stopwatch.ElapsedMilliseconds);
+            }
+        }
+
+        [Test]
+        public static void exotic_serialize()
+        {
+            Console.WriteLine();
+            Console.Write("fastjson serialize");
+            colclass c = CreateObject(true, true);
+            var stopwatch = new Stopwatch();
+            for (int pp = 0; pp < tcount; pp++)
+            {
+                byte[] jsonText = null;
+                stopwatch.Restart();
+                for (int i = 0; i < count; i++)
+                {
+                    jsonText = BJSON.ToBJSON(c);
+                }
+                stopwatch.Stop();
+                Console.Write("\t" + stopwatch.ElapsedMilliseconds);
+            }
+        }
+
     }
 }
