@@ -7,14 +7,16 @@ using System.Threading;
 using fastBinaryJSON;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Linq;
+using System.Dynamic;
 
 namespace UnitTests
 {
     public class Tests
     {
         #region [  helpers  ]
-        static int count = 1000;
-        static int tcount = 5;
+        static int thousandtimes = 1000;
+        static int fivetimes = 5;
         static DataSet ds = new DataSet();
         //static bool exotic = false;
         //static bool dsser = false;
@@ -526,19 +528,19 @@ namespace UnitTests
             Console.Write("fastbinaryjson deserialize");
             colclass c = CreateObject(false, false);
             double t = 0;
-            for (int pp = 0; pp < tcount; pp++)
+            for (int pp = 0; pp < fivetimes; pp++)
             {
                 DateTime st = DateTime.Now;
                 colclass deserializedStore;
                 byte[] jsonText = fastBinaryJSON.BJSON.ToBJSON(c);
-                for (int i = 0; i < count; i++)
+                for (int i = 0; i < thousandtimes; i++)
                 {
                     deserializedStore = fastBinaryJSON.BJSON.ToObject<colclass>(jsonText, new BJSONParameters { ParametricConstructorOverride = true });
                 }
                 t += DateTime.Now.Subtract(st).TotalMilliseconds;
                 Console.Write("\t" + DateTime.Now.Subtract(st).TotalMilliseconds);
             }
-            Console.WriteLine("\tAVG = " + t / tcount);
+            Console.WriteLine("\tAVG = " + t / fivetimes);
         }
 
         [Test]
@@ -548,18 +550,18 @@ namespace UnitTests
             //fastBinaryJSON.BJSON.Parameters.UsingGlobalTypes = false;
             colclass c = CreateObject(false, false);
             double t = 0;
-            for (int pp = 0; pp < tcount; pp++)
+            for (int pp = 0; pp < fivetimes; pp++)
             {
                 DateTime st = DateTime.Now;
                 byte[] jsonText = null;
-                for (int i = 0; i < count; i++)
+                for (int i = 0; i < thousandtimes; i++)
                 {
                     jsonText = fastBinaryJSON.BJSON.ToBJSON(c);
                 }
                 t += DateTime.Now.Subtract(st).TotalMilliseconds;
                 Console.Write("\t" + DateTime.Now.Subtract(st).TotalMilliseconds);
             }
-            Console.WriteLine("\tAVG = " + t / tcount);
+            Console.WriteLine("\tAVG = " + t / fivetimes);
         }
 
         [Test]
@@ -1084,7 +1086,7 @@ namespace UnitTests
             Console.Write("fastjson deserialize");
             colclass c = CreateObject(true, true);
             var stopwatch = new Stopwatch();
-            for (int pp = 0; pp < tcount; pp++)
+            for (int pp = 0; pp < fivetimes; pp++)
             {
                 colclass deserializedStore;
                 byte[] jsonText = null;
@@ -1092,7 +1094,7 @@ namespace UnitTests
                 stopwatch.Restart();
                 jsonText = BJSON.ToBJSON(c);
                 //Console.WriteLine(" size = " + jsonText.Length);
-                for (int i = 0; i < count; i++)
+                for (int i = 0; i < thousandtimes; i++)
                 {
                     deserializedStore = (colclass)BJSON.ToObject(jsonText);
                 }
@@ -1108,11 +1110,11 @@ namespace UnitTests
             Console.Write("fastjson serialize");
             colclass c = CreateObject(true, true);
             var stopwatch = new Stopwatch();
-            for (int pp = 0; pp < tcount; pp++)
+            for (int pp = 0; pp < fivetimes; pp++)
             {
                 byte[] jsonText = null;
                 stopwatch.Restart();
-                for (int i = 0; i < count; i++)
+                for (int i = 0; i < thousandtimes; i++)
                 {
                     jsonText = BJSON.ToBJSON(c);
                 }
@@ -1121,5 +1123,170 @@ namespace UnitTests
             }
         }
 
-    }
+        [Test]
+        public static void BigData()
+        {
+            Console.WriteLine();
+            Console.Write("fastbinaryjson bigdata serialize");
+            colclass c = CreateBigdata();
+            Console.WriteLine("\r\ntest obj created");
+            var stopwatch = new Stopwatch();
+            for (int pp = 0; pp < fivetimes; pp++)
+            {
+                byte[] jsonText = null;
+                stopwatch.Restart();
+
+                jsonText = BJSON.ToBJSON(c);
+
+                stopwatch.Stop();
+                Console.Write("\t" + stopwatch.ElapsedMilliseconds);
+            }
+        }
+
+        private static colclass CreateBigdata()
+        {
+            colclass c = new colclass();
+            Random r = new Random((int)DateTime.Now.Ticks);
+
+            for (int i = 0; i < 200 * thousandtimes; i++)
+            {
+                c.items.Add(new class1(r.Next().ToString(), r.Next().ToString(), Guid.NewGuid()));
+            }
+            return c;
+        }
+
+        public class ctype
+        {
+            public System.Net.IPAddress ip;
+        }
+        [Test]
+        public static void CustomTypes()
+        {
+            var ip = new ctype();
+            ip.ip = System.Net.IPAddress.Loopback;
+
+            BJSON.RegisterCustomType(typeof(System.Net.IPAddress),
+                (x) => { return x.ToString(); },
+                (x) => { return System.Net.IPAddress.Parse(x); });
+
+            var s = BJSON.ToBJSON(ip);
+
+            var o = BJSON.ToObject<ctype>(s);
+            Assert.AreEqual(ip.ip, o.ip);
+        }
+
+        //[Test]
+        //public static void stringint()
+        //{
+        //    var s = BJSON.ToBJSON("42");
+
+        //    var o = BJSON.ToObject<long>(s);
+        //}
+
+        [Test]
+        public static void anonymoustype()
+        {
+            var jsonParameters = new BJSONParameters { EnableAnonymousTypes = true };
+            var data = new List<DateTimeOffset>();
+            data.Add(new DateTimeOffset(DateTime.Now));
+
+            var anonTypeWithDateTimeOffset = data.Select(entry => new { DateTimeOffset = entry }).ToList();
+            var json = BJSON.ToBJSON(anonTypeWithDateTimeOffset.First(), jsonParameters); // this will throw
+
+            var obj = new
+            {
+                Name = "aa",
+                Age = 42,
+                Code = "007"
+            };
+
+            json = BJSON.ToBJSON(obj, jsonParameters);
+            //Assert.True(json.Contains("\"Name\""));
+        }
+
+        [Test]
+        public static void Expando()
+        {
+            dynamic obj = new ExpandoObject();
+            obj.UserView = "10080";
+            obj.UserCatalog = "test";
+            obj.UserDate = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            obj.UserBase = "";
+
+            var s = BJSON.ToBJSON(obj);
+            //Assert.True(s.Contains("UserView\":\"10080"));
+        }
+
+        [Test]
+        public static void NaN()
+        {
+            double d = double.NaN;
+            float f = float.NaN;
+
+            var s = BJSON.ToBJSON(d);
+            var o = BJSON.ToObject<double>(s);
+            Assert.AreEqual(d, o);
+
+            s = BJSON.ToBJSON(f);
+            var oo = BJSON.ToObject<float>(s);
+            Assert.AreEqual(f, oo);
+
+            var pp = BJSON.ToObject<Single>(s);
+        }
+
+        [Test]
+        public static void nonstandardkey()
+        {
+            Dictionary<string, object> dict = new Dictionary<string, object>();
+            dict["With \"Quotes\""] = "With \"Quotes\"";
+            BJSONParameters p = new BJSONParameters();
+            p.EnableAnonymousTypes = false;
+            p.UseExtensions = false;
+            var s = BJSON.ToBJSON(dict, p);
+            var d = BJSON.ToObject<Dictionary<string, string>>(s);
+            Assert.AreEqual(1, d.Count);
+            Assert.AreEqual("With \"Quotes\"", d.Keys.First());
+        }
+
+        [Test]
+        public static void ByteArrayInDictionary()
+        {
+            var s = BJSON.ToBJSON(new Dictionary<string, byte[]>
+                {
+                    { "Test", new byte[10] },
+                    { "Test 2", new byte[0] }
+                });
+
+            var d = BJSON.ToObject<Dictionary<string, byte[]>>(s);
+            Assert.AreEqual(typeof(byte[]), d["Test 2"].GetType());
+        }
+
+        public class dto
+        {
+            public DateTimeOffset date;
+        }
+
+        [Test]
+        public static void datetimeoff()
+        {
+            DateTimeOffset dt = new DateTimeOffset(DateTime.Now);
+            BJSON.RegisterCustomType(typeof(DateTimeOffset),
+                (x) => { return x.ToString(); },
+                (x) => { return DateTimeOffset.Parse(x); }
+            );
+
+            var t = new dto();
+            t.date = dt;
+
+            var s = BJSON.ToBJSON(t);
+            var d = BJSON.ToObject(s);
+
+            s = BJSON.ToBJSON(dt);
+            d = BJSON.ToObject<DateTimeOffset>(s);
+            //Assert.AreEqual(dt, d);
+        }
+
+
+
+    }// UnitTests.Tests.
 }

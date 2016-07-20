@@ -1,3 +1,10 @@
+v1.4.14
+-------
+- bug fix DateTime in anonymous type InvalidProgramException (thanks to skottmckay)
+- fixed broken custom type handler (sorry to all)
+- added test for custom types
+- fixed byte[] in Dictionary values with test
+
 v1.4.13
 -------
 - bug fix ToObject<Dictionary<string, List<X>>>() (thanks to sleiN13)

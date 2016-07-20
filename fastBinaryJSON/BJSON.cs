@@ -6,6 +6,7 @@ using System.Data;
 #endif
 using System.IO;
 using System.Collections.Specialized;
+using System.Globalization;
 
 namespace fastBinaryJSON
 {
@@ -37,6 +38,7 @@ namespace fastBinaryJSON
         public const byte TRUE = 24;
         public const byte FALSE = 25;
         public const byte UNICODE_STRING = 26;
+        public const byte DATETIMEOFFSET = 27;
     }
 
     public delegate string Serialize(object data);
@@ -90,6 +92,7 @@ namespace fastBinaryJSON
         /// Maximum depth the serializer will go to to avoid loops (default = 20 levels)
         /// </summary>
         public short SerializerMaxDepth = 20;
+
 
         public void FixValues()
         {
@@ -306,8 +309,18 @@ namespace fastBinaryJSON
                 else
                     return (o as List<object>).ToArray();
             }
+            else if (type != null && o.GetType() != type)
+                return ChangeType(o, type);
 
             return o;
+        }
+
+        private object ChangeType(object o, Type type)
+        {
+            if (Reflection.Instance.IsTypeRegistered(type))
+                return Reflection.Instance.CreateCustom((string)o, type);
+            else
+                return o;
         }
 
         public object FillObject(object input, byte[] json)
@@ -317,7 +330,6 @@ namespace fastBinaryJSON
             if (ht == null) return null;
             return ParseDictionary(ht, null, input.GetType(), input);
         }
-
 
         private object RootHashTable(List<object> o)
         {
@@ -380,7 +392,10 @@ namespace fastBinaryJSON
                     object k = kv.Key;
 
                     if (kv.Value is Dictionary<string, object>)
-                        v = ParseDictionary(kv.Value as Dictionary<string, object>, null, gtypes[1], null);
+                        v = ParseDictionary(kv.Value as Dictionary<string, object>, null, t2, null);
+
+                    else if (t2 == typeof(byte[]))
+                        v = kv.Value;
 
                     else if (gtypes != null && t2.IsArray)
                         v = CreateArray((List<object>)kv.Value, t2, arraytype, null);
@@ -468,7 +483,7 @@ namespace fastBinaryJSON
                 _cirrev.Add(circount, o);
             }
 
-            Dictionary<string, myPropInfo> props = Reflection.Instance.Getproperties(type, typename, Reflection.Instance.IsTypeRegistered(type));
+            Dictionary<string, myPropInfo> props = Reflection.Instance.Getproperties(type, typename);//, Reflection.Instance.IsTypeRegistered(type));
             foreach (var kv in d)
             {
                 var n = kv.Key;
