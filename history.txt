@@ -1,3 +1,11 @@
+v1.4.15
+-------
+- synced reflection.cs with fastJSON
+- bug fix read only properties to output
+- added test for readonly properties 
+- added NonSerialized to the list of ignore default attributes
+- support for ExpandoObject serialization with test
+
 v1.4.14
 -------
 - bug fix DateTime in anonymous type InvalidProgramException (thanks to skottmckay)

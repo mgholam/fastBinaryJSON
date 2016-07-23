@@ -1187,6 +1187,10 @@ namespace UnitTests
         public static void anonymoustype()
         {
             var jsonParameters = new BJSONParameters { EnableAnonymousTypes = true };
+            BJSON.RegisterCustomType(typeof(DateTimeOffset),
+                (x) => { return x.ToString(); },
+                (x) => { return DateTimeOffset.Parse(x); }
+            );
             var data = new List<DateTimeOffset>();
             data.Add(new DateTimeOffset(DateTime.Now));
 
@@ -1201,7 +1205,9 @@ namespace UnitTests
             };
 
             json = BJSON.ToBJSON(obj, jsonParameters);
-            //Assert.True(json.Contains("\"Name\""));
+            var p = BJSON.Parse(json);
+            Assert.True((p as Dictionary<string, object>).ContainsKey("Name"));
+            BJSON.ClearReflectionCache();
         }
 
         [Test]
@@ -1214,7 +1220,8 @@ namespace UnitTests
             obj.UserBase = "";
 
             var s = BJSON.ToBJSON(obj);
-            //Assert.True(s.Contains("UserView\":\"10080"));
+            var p = BJSON.Parse(s);
+            Assert.True((p as Dictionary<string,object>).ContainsKey("UserView"));
         }
 
         [Test]
@@ -1286,6 +1293,24 @@ namespace UnitTests
             //Assert.AreEqual(dt, d);
         }
 
+        public class X
+        {
+            private int i;
+            public X(int i) { this.i = i; }
+            public int I { get { return this.i; } }
+        }
+
+        [Test]
+        public static void ReadonlyProperty()
+        {
+            var x = new X(10);
+            var s = BJSON.ToBJSON(x, new BJSONParameters { ShowReadOnlyProperties = true });
+            var b = BJSON.Parse(s);
+            Assert.True((b as Dictionary<string,object>).ContainsKey("I"));
+            var o = BJSON.ToObject<X>(s, new BJSONParameters { ParametricConstructorOverride = true });
+            // no set available -> I = 0
+            Assert.AreEqual(0, o.I);
+        }
 
 
     }// UnitTests.Tests.

@@ -79,9 +79,9 @@ namespace fastBinaryJSON
         /// </summary>
         public bool UseUTCDateTime = false;
         /// <summary>
-        /// Ignore attributes to check for (default : XmlIgnoreAttribute)
+        /// Ignore attributes to check for (default : XmlIgnoreAttribute, NonSerialized)
         /// </summary>
-        public List<Type> IgnoreAttributes = new List<Type> { typeof(System.Xml.Serialization.XmlIgnoreAttribute) };
+        public List<Type> IgnoreAttributes = new List<Type> { typeof(System.Xml.Serialization.XmlIgnoreAttribute) , typeof(NonSerializedAttribute)};
         /// <summary>
         /// If you have parametric and no default constructor for you classes (default = False)
         /// 
