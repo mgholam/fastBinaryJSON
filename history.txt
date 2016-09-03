@@ -1,3 +1,7 @@
+v1.4.16
+-------
+- added support for interface object properties (thanks to DrDeadCrash)
+
 v1.4.15
 -------
 - synced reflection.cs with fastJSON

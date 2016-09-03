@@ -796,7 +796,7 @@ namespace UnitTests
             var o = new nondefaultctor(10);
             //fastBinaryJSON.BJSON.Parameters.ParametricConstructorOverride = true;
             var s = fastBinaryJSON.BJSON.ToBJSON(o);
-            Console.WriteLine(s);
+            //Console.WriteLine(s);
             var obj = fastBinaryJSON.BJSON.ToObject<nondefaultctor>(s, new BJSONParameters { ParametricConstructorOverride = true });
             Assert.AreEqual(10, obj.age);
             List<nondefaultctor> l = new List<nondefaultctor> { o, o, o };
@@ -922,11 +922,11 @@ namespace UnitTests
             r.NextRoot = r;
 
 
-            Console.WriteLine("JSON:\n---\n{0}\n---", BJSON.ToBJSON(r));
+            //Console.WriteLine("JSON:\n---\n{0}\n---", BJSON.ToBJSON(r));
 
-            Console.WriteLine();
+            //Console.WriteLine();
 
-            Console.WriteLine("Nice JSON:\n---\n{0}\n---", BJSON.ToBJSON(BJSON.ToObject<Root>(BJSON.ToBJSON(r))));
+            //Console.WriteLine("Nice JSON:\n---\n{0}\n---", BJSON.ToBJSON(BJSON.ToObject<Root>(BJSON.ToBJSON(r))));
         }
 
 
@@ -1083,7 +1083,7 @@ namespace UnitTests
         public static void exotic_deserialize()
         {
             Console.WriteLine();
-            Console.Write("fastjson deserialize");
+            Console.Write("fastbinaryjson deserialize");
             colclass c = CreateObject(true, true);
             var stopwatch = new Stopwatch();
             for (int pp = 0; pp < fivetimes; pp++)
@@ -1107,7 +1107,7 @@ namespace UnitTests
         public static void exotic_serialize()
         {
             Console.WriteLine();
-            Console.Write("fastjson serialize");
+            Console.Write("fastbinaryjson serialize");
             colclass c = CreateObject(true, true);
             var stopwatch = new Stopwatch();
             for (int pp = 0; pp < fivetimes; pp++)
@@ -1312,6 +1312,88 @@ namespace UnitTests
             Assert.AreEqual(0, o.I);
         }
 
+
+        public class il
+        {
+            public IList list { get; set; }
+            public string name;
+        }
+
+        [Test]
+        public static void ilist()
+        {
+            var i = new il();
+            i.list = new List<baseclass>();
+            i.list.Add(new class1("1", "1", Guid.NewGuid()));
+            i.list.Add(new class2("4", "5", "hi"));
+            i.name = "hi";
+
+            var s = BJSON.ToBJSON(i);//, new JSONParameters { UseExtensions = true });
+            //Console.WriteLine(s);
+
+            var o = BJSON.ToObject<il>(s);
+        }
+
+        public interface iintfc
+        {
+            string name { get; set; }
+            int age { get; set; }
+        }
+
+        public class intfc : iintfc
+        {
+            public string address = "fadfsdf";
+            private int _age;
+            public int age
+            {
+                get
+                {
+                    return _age;
+                }
+
+                set
+                {
+                    _age = value;
+                }
+            }
+            private string _name;
+            public string name
+            {
+                get
+                {
+                    return _name;
+                }
+
+                set
+                {
+                    _name = value;
+                }
+            }
+        }
+
+        public class it
+        {
+            public iintfc i { get; set; }
+            public string name = "bb";
+
+        }
+
+        [Test]
+        public static void interface_test()
+        {
+            var ii = new it();
+            
+            var i = new intfc();
+            i.age = 10;
+            i.name = "aa";
+
+            ii.i = i;
+
+            var s = BJSON.ToBJSON(ii);
+
+            var o = BJSON.ToObject(s);
+
+        }
 
     }// UnitTests.Tests.
 }
