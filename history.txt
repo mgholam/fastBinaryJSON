@@ -1,3 +1,7 @@
+v1.4.17
+-------
+- bug fix nested dictionary D<,D<,>>
+
 v1.4.16
 -------
 - added support for interface object properties (thanks to DrDeadCrash)
