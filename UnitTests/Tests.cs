@@ -1408,5 +1408,40 @@ namespace UnitTests
             Assert.AreEqual(2, obj[0].Count());
         }
 
+        public class dyen
+        {
+            public string Prop1;
+            public string Prop2;
+        }
+
+        [Test]
+        public static void DynamicEnumerate()
+        {
+            var oo = new[] {
+                new dyen{ Prop1 = "1111", Prop2 ="2222" },
+                new dyen{ Prop1 = "11111", Prop2 ="22222" }
+            };
+
+            var j =BJSON.ToBJSON(oo);
+     //            @"[
+     //   {
+     //      ""Prop1"" : ""Info 1"",
+     //      ""Prop2"" : ""More Info 1""
+     //   },
+     //   {
+     //      ""Prop1"" : ""Info 2"",
+     //      ""Prop2"" : ""More Info 2""
+     //   }
+     //]";
+     
+
+            var testObject = BJSON.ToDynamic(j);
+            foreach (var o in testObject)
+            {
+                Console.WriteLine(o.Prop1);
+                Assert.True(o.Prop1 != "");
+            }
+        }
+
     }// UnitTests.Tests.
 }
