@@ -10,6 +10,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{F4BFF0D2-45F6-413B-B1E7-BC4A0D6596FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fastBinaryJSON net35", "fastBinaryJSON\fastBinaryJSON net35.csproj", "{A87C4070-065B-4012-9EF0-184AA60B5CC9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{207E91B1-C9F8-4913-88E1-3549EF5F3273} = {207E91B1-C9F8-4913-88E1-3549EF5F3273}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

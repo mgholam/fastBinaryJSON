@@ -17,6 +17,8 @@ namespace fastBinaryJSON
 
             if (parse is IDictionary<string, object>)
                 _dictionary = (IDictionary<string, object>)parse;
+            else if (parse is typedarray)
+                _list = ((typedarray)parse).data;
             else
                 _list = (List<object>)parse;
         }

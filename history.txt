@@ -1,3 +1,13 @@
+v1.4.19
+-------
+- added TOKENS.ARRAY_TYPED for typed arrays
+- deserialize t[] into an object correctly as t[] not object[]
+- added BJSONParameters.UseTypedArrays to control above (default = true)
+- renamed main solution file
+- added TOKENS.TYPES_POINTER for $types into bytes stream at the end
+- optimize serialize memory usage
+- if you put a DataSet into an object then it will deserialize correctly
+
 v1.4.18
 -------
 - bug fix enumerating dynamic objects
