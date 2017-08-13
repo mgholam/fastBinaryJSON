@@ -1472,15 +1472,115 @@ public class tests
         Assert.True(typeof(simpclass[]) == r.ds.GetType());
     }
 
-    //[Test]
-    //public static void Exceptions()
-    //{
-    //    var e = new Exception("error!");
+    [Test]
+    public static void Timespan()
+    {
+        TimeSpan ts = new TimeSpan(2, 2, 2, 2);
+        var b = BJSON.ToBJSON(ts);
+        var o = BJSON.ToObject<TimeSpan>(b);
+    }
 
-    //    var s = BJSON.ToBJSON(e);
+    public class DigitLimit
+    {
+        public float Fmin;
+        public float Fmax;
+        public decimal MminDec;
+        public decimal MmaxDec;
 
-    //    var o = BJSON.ToObject(s);
-    //}
+
+        public decimal Mmin;
+        public decimal Mmax;
+        public double Dmin;
+        public double Dmax;
+        public double DminDec;
+        public double DmaxDec;
+        public double Dni;
+        public double Dpi;
+        public double Dnan;
+        public float FminDec;
+        public float FmaxDec;
+        public float Fni;
+        public float Fpi;
+        public float Fnan;
+        public long Lmin;
+        public long Lmax;
+        public ulong ULmax;
+        public int Imin;
+        public int Imax;
+        public uint UImax;
+
+
+        //public IntPtr Iptr1 = new IntPtr(0); //Serialized to a Dict, exception on deserialization
+        //public IntPtr Iptr2 = new IntPtr(0x33445566); //Serialized to a Dict, exception on deserialization
+        //public UIntPtr UIptr1 = new UIntPtr(0); //Serialized to a Dict, exception on deserialization
+        //public UIntPtr UIptr2 = new UIntPtr(0x55667788); //Serialized to a Dict, exception on deserialization
+    }
+
+    [Test]
+    public static void digitlimits()
+    {
+        var d = new DigitLimit();
+        d.Fmin = float.MinValue;// serializer loss on tostring() 
+        d.Fmax = float.MaxValue;// serializer loss on tostring()
+        d.MminDec = -7.9228162514264337593543950335m; //OK to be serialized but lost precision in deserialization
+        d.MmaxDec = +7.9228162514264337593543950335m; //OK to be serialized but lost precision in deserialization
+
+        d.Mmin = decimal.MinValue;
+        d.Mmax = decimal.MaxValue;
+        d.Dmin = double.MinValue;
+        d.Dmax = double.MaxValue;
+        d.DminDec = -double.Epsilon;
+        d.DmaxDec = double.Epsilon;
+        d.Dni = double.NegativeInfinity;
+        d.Dpi = double.PositiveInfinity;
+        d.Dnan = double.NaN;
+        d.FminDec = -float.Epsilon;
+        d.FmaxDec = float.Epsilon;
+        d.Fni = float.NegativeInfinity;
+        d.Fpi = float.PositiveInfinity;
+        d.Fnan = float.NaN;
+        d.Lmin = long.MinValue;
+        d.Lmax = long.MaxValue;
+        d.ULmax = ulong.MaxValue;
+        d.Imin = int.MinValue;
+        d.Imax = int.MaxValue;
+        d.UImax = uint.MaxValue;
+
+
+        var s = BJSON.ToBJSON(d);
+        Console.WriteLine(s);
+        var o = BJSON.ToObject<DigitLimit>(s);
+
+
+        //ok
+        Assert.AreEqual(d.Dmax, o.Dmax);
+        Assert.AreEqual(d.DmaxDec, o.DmaxDec);
+        Assert.AreEqual(d.Dmin, o.Dmin);
+        Assert.AreEqual(d.DminDec, o.DminDec);
+        Assert.AreEqual(d.Dnan, o.Dnan);
+        Assert.AreEqual(d.Dni, o.Dni);
+        Assert.AreEqual(d.Dpi, o.Dpi);
+        Assert.AreEqual(d.FmaxDec, o.FmaxDec);
+        Assert.AreEqual(d.FminDec, o.FminDec);
+        Assert.AreEqual(d.Fnan, o.Fnan);
+        Assert.AreEqual(d.Fni, o.Fni);
+        Assert.AreEqual(d.Fpi, o.Fpi);
+        Assert.AreEqual(d.Imax, o.Imax);
+        Assert.AreEqual(d.Imin, o.Imin);
+        Assert.AreEqual(d.Lmax, o.Lmax);
+        Assert.AreEqual(d.Lmin, o.Lmin);
+        Assert.AreEqual(d.Mmax, o.Mmax);
+        Assert.AreEqual(d.Mmin, o.Mmin);
+        Assert.AreEqual(d.UImax, o.UImax);
+        Assert.AreEqual(d.ULmax, o.ULmax);
+
+        // ok
+        Assert.AreEqual(d.Fmax, o.Fmax);
+        Assert.AreEqual(d.Fmin, o.Fmin);
+        Assert.AreEqual(d.MmaxDec, o.MmaxDec);
+        Assert.AreEqual(d.MminDec, o.MminDec);
+
+    }
 
 }// tests.
 //}

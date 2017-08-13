@@ -1,3 +1,8 @@
+v1.4.20
+-------
+- added TimeSpan
+- added digit limit tests
+
 v1.4.19
 -------
 - added TOKENS.ARRAY_TYPED for typed arrays

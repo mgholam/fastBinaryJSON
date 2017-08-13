@@ -39,7 +39,8 @@ namespace fastBinaryJSON
         public const byte UNICODE_STRING = 26;
         public const byte DATETIMEOFFSET = 27;
         public const byte ARRAY_TYPED = 28;
-        public const byte TYPES_POINTER = 29; 
+        public const byte TYPES_POINTER = 29;
+        public const byte TIMESPAN = 30;
     }
 
     public class typedarray
