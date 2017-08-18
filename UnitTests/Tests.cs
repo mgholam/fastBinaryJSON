@@ -1165,6 +1165,35 @@ public class tests
         Assert.AreEqual(ip.ip, o.ip);
     }
 
+    public class CollectionDto
+    {
+        public IDictionary<string,int> Dictionary = new Dictionary<string, int>();
+        public IDictionary<int, int> Dictionary2 = new Dictionary<int, int>();
+        public ICollection<string> Collection;
+        public IList<DateTime> OrderedCollection;
+    }
+    
+    [Test]
+    public static void CollectionInterfaces()
+    {
+        var dto = new CollectionDto
+        {
+            Dictionary = {{"test", 2}, {"test2", 3}},
+            Dictionary2 = {{1, 2}, {2, 4}},
+            Collection = new HashSet<string> {"3", "5", "7"},
+            OrderedCollection = new[] {DateTime.Now, DateTime.MaxValue}
+        };
+        
+        var s = BJSON.ToBJSON(dto);
+        var o = BJSON.ToObject<CollectionDto>(s);
+
+        Assert.IsNotNull(o);
+        CollectionAssert.AreEquivalent(dto.Dictionary, o.Dictionary);
+        CollectionAssert.AreEquivalent(dto.Dictionary2, o.Dictionary2);
+        CollectionAssert.AreEquivalent(dto.Collection, o.Collection);
+        CollectionAssert.AreEqual(dto.OrderedCollection, o.OrderedCollection);
+    }
+    
     //[Test]
     //public static void stringint()
     //{
