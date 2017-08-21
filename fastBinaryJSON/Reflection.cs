@@ -85,8 +85,9 @@ namespace fastBinaryJSON
         private SafeDictionary<Type, CreateObject> _constrcache = new SafeDictionary<Type, CreateObject>();
         private SafeDictionary<Type, Getters[]> _getterscache = new SafeDictionary<Type, Getters[]>();
         private SafeDictionary<string, Dictionary<string, myPropInfo>> _propertycache = new SafeDictionary<string, Dictionary<string, myPropInfo>>();
-        private SafeDictionary<Type, Type[]> _genericTypes = new SafeDictionary<Type, Type[]>();
+        private SafeDictionary<Type, Type[]> _genericArguments = new SafeDictionary<Type, Type[]>();
         private SafeDictionary<Type, Type> _genericTypeDef = new SafeDictionary<Type, Type>();
+        private SafeDictionary<Tuple<Type,Type,Type>, Type> _genericTypes = new SafeDictionary<Tuple<Type, Type, Type>, Type>(); // If it is possible to use the System.ValueTuple type, the key would be (Type genericDef,Type param1,Type param2)
 
         #region bjson custom types
         internal UnicodeEncoding unicode = new UnicodeEncoding();
@@ -125,6 +126,30 @@ namespace fastBinaryJSON
         }
         #endregion
 
+        public Type GetGenericType(Type openType, Type genericArgument1, Type genericArgument2)
+        {
+            Type result;
+            var key = Tuple.Create(openType, genericArgument1, genericArgument2);
+            if (_genericTypes.TryGetValue(key, out result))
+                return result;
+            System.Diagnostics.Debug.Assert(openType.GetGenericArguments().Length == 2);
+            result = openType.MakeGenericType(genericArgument1, genericArgument2);
+            _genericTypes.Add(key, result);
+            return result;
+        }
+
+        public Type GetGenericType(Type openType, Type genericArgument1)
+        {
+            Type result;
+            var key = Tuple.Create(openType, genericArgument1, (Type)null);
+            if (_genericTypes.TryGetValue(key, out result))
+                return result;
+            System.Diagnostics.Debug.Assert(openType.GetGenericArguments().Length == 1);
+            result = openType.MakeGenericType(genericArgument1);
+            _genericTypes.Add(key, result);
+            return result;
+        }
+
         public Type GetGenericTypeDefinition(Type t)
         {
             Type tt = null;
@@ -141,12 +166,12 @@ namespace fastBinaryJSON
         public Type[] GetGenericArguments(Type t)
         {
             Type[] tt = null;
-            if (_genericTypes.TryGetValue(t, out tt))
+            if (_genericArguments.TryGetValue(t, out tt))
                 return tt;
             else
             {
                 tt = t.GetGenericArguments();
-                _genericTypes.Add(t, tt);
+                _genericArguments.Add(t, tt);
                 return tt;
             }
         }
@@ -605,8 +630,9 @@ namespace fastBinaryJSON
             _constrcache = new SafeDictionary<Type, CreateObject>();
             _getterscache = new SafeDictionary<Type, Getters[]>();
             _propertycache = new SafeDictionary<string, Dictionary<string, myPropInfo>>();
-            _genericTypes = new SafeDictionary<Type, Type[]>();
+            _genericArguments = new SafeDictionary<Type, Type[]>();
             _genericTypeDef = new SafeDictionary<Type, Type>();
+            _genericTypes = new SafeDictionary<Tuple<Type, Type, Type>, Type>();
         }
     }
 }

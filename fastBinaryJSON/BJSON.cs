@@ -660,7 +660,7 @@ namespace fastBinaryJSON
         {
             if (pt != typeof(object))
             {
-                IList col = (IList)Reflection.Instance.FastCreateInstance(pt.IsInterface ? typeof(List<>).MakeGenericType(bt??typeof(object)) : pt);
+                var col = (IList)Reflection.Instance.FastCreateInstance(pt.IsInterface ? Reflection.Instance.GetGenericType(typeof(List<>),bt ?? typeof(object)) : pt);
                 // create an array of objects
                 foreach (object ob in data)
                 {
@@ -691,7 +691,7 @@ namespace fastBinaryJSON
             if (types != null)
                 t2 = types[1];
 
-            var col = (IDictionary)Reflection.Instance.FastCreateInstance(pt.IsInterface ? typeof(Dictionary<,>).MakeGenericType(typeof(string), t2??typeof(object)) : pt);
+            var col = (IDictionary)Reflection.Instance.FastCreateInstance(pt.IsInterface ? Reflection.Instance.GetGenericType(typeof(Dictionary<,>), typeof(string), t2??typeof(object)) : pt);
 
             Type generictype = null;
             var ga = t2.GetGenericArguments();
@@ -736,7 +736,7 @@ namespace fastBinaryJSON
                 t2 = types[1];
             }
 
-            IDictionary col = (IDictionary)Reflection.Instance.FastCreateInstance(pt.IsInterface && t1!=null ? typeof(Dictionary<,>).MakeGenericType(t1, t2??typeof(object)) : pt);
+            var col = (IDictionary)Reflection.Instance.FastCreateInstance(pt.IsInterface && t1!=null ? Reflection.Instance.GetGenericType(typeof(Dictionary<,>), t1, t2??typeof(object)) : pt);
 
             foreach (Dictionary<string, object> values in reader)
             {
