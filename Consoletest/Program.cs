@@ -120,7 +120,7 @@ namespace consoletest
 
             //			litjson_serialize();
             //			jsonnet_serialize();
-            //			jsonnet4_serialize();
+            //			json!NET35_serialize();
             //stack_serialize();
 
             //systemweb_deserialize();
@@ -129,7 +129,7 @@ namespace consoletest
 
             //			litjson_deserialize();
             //			jsonnet_deserialize();
-            //			jsonnet4_deserialize();
+            //			json!NET35_deserialize();
             //			stack_deserialize();
             #endregion
         }
@@ -388,10 +388,10 @@ namespace consoletest
 //			}
 //		}
 
-		private static void jsonnet4_deserialize()
+		private static void json!NET35_deserialize()
 		{
 			Console.WriteLine();
-			Console.Write("json.net4 deserialize");
+			Console.Write("json.!NET35 deserialize");
 			for (int pp = 0; pp < 5; pp++)
 			{
 				DateTime st = DateTime.Now;
@@ -410,10 +410,10 @@ namespace consoletest
 			}
 		}
 
-		private static void jsonnet4_serialize()
+		private static void json!NET35_serialize()
 		{
 			Console.WriteLine();
-			Console.Write("json.net4 serialize");
+			Console.Write("json.!NET35 serialize");
 			for (int pp = 0; pp < 5; pp++)
 			{
 				DateTime st = DateTime.Now;
