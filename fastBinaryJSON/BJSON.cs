@@ -623,6 +623,8 @@ namespace fastBinaryJSON
         private object CreateEnum(Type pt, object v)
         {
             // FEATURE : optimize create enum
+            if (pt.IsGenericType && Reflection.Instance.GetGenericTypeDefinition(pt) == typeof(Nullable<>))
+                pt = Reflection.Instance.GetGenericArguments(pt)[0];
 #if !SILVERLIGHT
             return Enum.Parse(pt, v.ToString());
 #else

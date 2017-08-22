@@ -306,6 +306,38 @@ public class tests
         Assert.IsNotNull(o);
     }
 
+    public struct NullableEnumStruct
+    {
+        public enumt? P1;
+        public enumt? P2;
+        public enumt P3;
+
+        public override string ToString()
+        {
+            return String.Format("{{P1={{{0}}}, P2={{{1}}}, P3={{{2}}}}}", P1, P2, P3);
+        }
+
+        public NullableEnumStruct(enumt? p1, enumt? p2, enumt p3)
+        {
+            P1 = p1;
+            P2 = p2;
+            P3 = p3;
+        }
+    }
+
+    [Test]
+    public static void NullableEnumTest()
+    {
+        var r = new NullableEnumStruct(enumt.B, null, enumt.C);
+
+        var s = BJSON.ToBJSON(r);
+        var o = BJSON.ToObject(s);
+
+        Assert.IsNotNull(o);
+        Assert.IsInstanceOf(r.GetType(), o);
+        Assert.AreEqual(r, o);
+    }
+
     [Test]
     public static void StringListTest()
     {

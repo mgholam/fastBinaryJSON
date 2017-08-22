@@ -204,7 +204,7 @@ namespace fastBinaryJSON
             else if (t == typeof(string)) d_type = myPropInfoType.String;
             else if (t == typeof(bool) || t == typeof(bool?)) d_type = myPropInfoType.Bool;
             else if (t == typeof(DateTime) || t == typeof(DateTime?)) d_type = myPropInfoType.DateTime;
-            else if (t.IsEnum) d_type = myPropInfoType.Enum;
+            else if (GetChangeType(t).IsEnum) d_type = myPropInfoType.Enum;
             else if (t == typeof(Guid) || t == typeof(Guid?)) d_type = myPropInfoType.Guid;
             else if (t == typeof(StringDictionary)) d_type = myPropInfoType.StringDictionary;
             else if (t == typeof(NameValueCollection)) d_type = myPropInfoType.NameValue;
@@ -254,7 +254,7 @@ namespace fastBinaryJSON
 
         private Type GetChangeType(Type conversionType)
         {
-            if (conversionType.IsGenericType && conversionType.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+            if (conversionType.IsGenericType && conversionType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 return Reflection.Instance.GetGenericArguments(conversionType)[0];
 
             return conversionType;
@@ -286,7 +286,7 @@ namespace fastBinaryJSON
                 //if (t == null) // RaptorDB : loading runtime assemblies
                 //{
                 //    t = Type.GetType(typename, (name) => {
-                //        return AppDomain.CurrentDomain.GetAssemblies().Where(z => z.FullName == name.FullName).FirstOrDefault();
+                //        return AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(z => z.FullName == name.FullName);
                 //    }, null, true);
                 //}
                 _typecache.Add(typename, t);
