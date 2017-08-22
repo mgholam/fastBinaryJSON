@@ -133,7 +133,7 @@ namespace fastBinaryJSON
 
             else if (obj is TimeSpan)
                 WriteTimeSpan((TimeSpan)obj);
-#if NET4
+#if !NET35
             else if (obj is System.Dynamic.ExpandoObject)
                 WriteStringDictionary((IDictionary<string, object>)obj);
 #endif
