@@ -6,6 +6,7 @@ using System.Data;
 #endif
 using System.IO;
 using System.Collections.Specialized;
+using System.Linq.Expressions;
 
 namespace fastBinaryJSON
 {
@@ -183,7 +184,7 @@ namespace fastBinaryJSON
             return new BJSONSerializer(param).ConvertToBJSON(obj);
         }
         /// <summary>
-        /// Fill a given object with the binary json represenation
+        /// Fill a given object with the binary json representation
         /// </summary>
         /// <param name="input"></param>
         /// <param name="json"></param>
@@ -551,8 +552,8 @@ namespace fastBinaryJSON
                                     break;
                                 default:
                                     {
-                                        if (pi.IsGenericType && pi.IsValueType == false)
-                                            oset = CreateGenericList((List<object>)v, pi.pt, pi.bt, globaltypes);
+                                        if (pi.IsGenericType && !pi.IsValueType)
+                                            oset = CreateGenericCollection((List<object>)v, pi.pt, pi.bt, globaltypes);
                                         else if ((pi.IsClass || pi.IsStruct || pi.IsInterface) && v is Dictionary<string, object>)
                                         {
                                             var oo = (Dictionary<string, object>)v;
@@ -656,7 +657,7 @@ namespace fastBinaryJSON
             return col;
         }
 
-        private object CreateGenericList(List<object> data, Type pt, Type bt, Dictionary<string, object> globalTypes)
+        private object CreateGenericList(IEnumerable<object> data, Type pt, Type bt, Dictionary<string, object> globalTypes)
         {
             if (pt != typeof(object))
             {
@@ -678,6 +679,55 @@ namespace fastBinaryJSON
                         col.Add(((typedarray)ob).data.ToArray());
                     else
                         col.Add(ob);
+                }
+                return col;
+            }
+            return data;
+        }
+
+        private object CreateGenericCollection(IEnumerable<object> data, Type pt, Type bt, Dictionary<string, object> globalTypes)
+        {
+            if (pt != typeof(object))
+            {
+                var objType = pt;
+                if (pt.IsInterface)
+                {
+#if !NET35
+                    // ISet<T> is also a collection interface, but is not implemented by any List or Dictionary, so use HashSet<T> as default implementation
+                    objType = new[] {typeof(List<>), typeof(HashSet<>)}
+                        .Select(t => Reflection.Instance.GetGenericType(t, bt ?? typeof(object)))
+                        .FirstOrDefault(pt.IsAssignableFrom);
+#else
+                    objType = Reflection.Instance.GetGenericType(typeof(List<>), bt ?? typeof(object));
+                    if (!pt.IsAssignableFrom(objType))
+                        objType = null;
+#endif
+                    if (objType == null)
+                        throw new NotSupportedException("Unable to resolve an implementation type for " + pt.FullName);
+                }
+                if (typeof(IList).IsAssignableFrom(objType))
+                    return CreateGenericList(data, objType, bt, globalTypes);
+                // create an array of objects
+                var add = Reflection.Instance.GetCollectionAdder(objType);
+                if (add == null) throw new NotSupportedException("Unable to find an Add() method for collection " + objType.FullName);
+                var col = Reflection.Instance.FastCreateInstance(objType);
+
+                foreach (object ob in data)
+                {
+                    if (ob is IDictionary)
+                        add(col, ParseDictionary((Dictionary<string, object>) ob, globalTypes, bt, null));
+
+                    else if (ob is List<object>)
+                    {
+                        if (bt.IsGenericType)
+                            add(col, (List<object>) ob);
+                        else
+                            add(col, ((List<object>) ob).ToArray());
+                    }
+                    else if (ob is typedarray)
+                        add(col, ((typedarray) ob).data.ToArray());
+                    else
+                        add(col, ob);
                 }
                 return col;
             }

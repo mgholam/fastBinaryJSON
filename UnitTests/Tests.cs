@@ -1169,7 +1169,8 @@ public class tests
     {
         public IDictionary<string,int> Dictionary = new Dictionary<string, int>();
         public IDictionary<int, int> Dictionary2 = new Dictionary<int, int>();
-        public ICollection<string> Collection;
+        public ISet<string> Set;
+        public ICollection Collection;
         public IList<DateTime> OrderedCollection;
     }
     
@@ -1180,7 +1181,8 @@ public class tests
         {
             Dictionary = {{"test", 2}, {"test2", 3}},
             Dictionary2 = {{1, 2}, {2, 4}},
-            Collection = new HashSet<string> {"3", "5", "7"},
+            Set = new SortedSet<string> {"5", "3", "7"},
+            Collection = new[] {"2", "8", "5"},
             OrderedCollection = new[] {DateTime.Now, DateTime.MaxValue}
         };
         
@@ -1190,7 +1192,9 @@ public class tests
         Assert.IsNotNull(o);
         CollectionAssert.AreEquivalent(dto.Dictionary, o.Dictionary);
         CollectionAssert.AreEquivalent(dto.Dictionary2, o.Dictionary2);
-        CollectionAssert.AreEquivalent(dto.Collection, o.Collection);
+        CollectionAssert.AreEquivalent(dto.Set, o.Set);
+        Assert.IsTrue(o.Set.SetEquals(dto.Set));
+        CollectionAssert.AreEqual(dto.Collection, o.Collection);
         CollectionAssert.AreEqual(dto.OrderedCollection, o.OrderedCollection);
     }
     

@@ -8,6 +8,7 @@ using System.Text;
 using System.Data;
 #endif
 using System.Collections.Specialized;
+using System.Linq.Expressions;
 
 namespace fastBinaryJSON
 {
@@ -79,6 +80,7 @@ namespace fastBinaryJSON
         internal delegate object GenericSetter(object target, object value);
         internal delegate object GenericGetter(object obj);
         private delegate object CreateObject();
+        internal delegate void AddItemToCollection(object collection, object item);
 
         private SafeDictionary<Type, string> _tyname = new SafeDictionary<Type, string>();
         private SafeDictionary<string, Type> _typecache = new SafeDictionary<string, Type>();
@@ -88,6 +90,7 @@ namespace fastBinaryJSON
         private SafeDictionary<Type, Type[]> _genericArguments = new SafeDictionary<Type, Type[]>();
         private SafeDictionary<Type, Type> _genericTypeDef = new SafeDictionary<Type, Type>();
         private SafeDictionary<GenericTypeKey, Type> _genericTypes = new SafeDictionary<GenericTypeKey, Type>();
+        private SafeDictionary<Type, AddItemToCollection> _genericCollectionAdders = new SafeDictionary<Type, AddItemToCollection>();
 
         #region private implementation types        
         /// <summary>
@@ -185,6 +188,28 @@ namespace fastBinaryJSON
             return _customSerializer.TryGetValue(t, out s);
         }
         #endregion
+
+        public AddItemToCollection GetCollectionAdder(Type collectionType)
+        {
+            var collType = typeof(IList).IsAssignableFrom(collectionType) ? typeof(IList) : collectionType; // Delegate the call to IList.Add(object) for all types that implement it.
+            if (_genericCollectionAdders.TryGetValue(collType, out var adder))
+                return adder;
+
+            var itemType = collType.IsGenericType ? GetGenericArguments(collType).SingleOrDefault() ?? typeof(object) : typeof(object);
+            var mi = collType.GetMethod(nameof(ICollection<object>.Add), new[] {itemType});
+            if (mi != null)
+            {
+                var inst = Expression.Parameter(typeof(object), "collection");
+                var item = Expression.Parameter(typeof(object), "item");
+                var itemArgument = itemType == item.Type ? item : Expression.Convert(item, itemType) as Expression; // Cast the item only if itemType is not object
+                adder = Expression.Lambda<AddItemToCollection>(
+                    Expression.Call(Expression.Convert(inst, collType), mi, itemArgument),
+                    inst,
+                    item).Compile();
+            }
+            _genericCollectionAdders[collType] = adder;
+            return adder;
+        }
 
         public Type GetGenericType(Type openType, params Type[] genericArguments)
         {
