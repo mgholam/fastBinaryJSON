@@ -378,14 +378,14 @@ namespace fastBinaryJSON
 
         internal static GenericSetter CreateSetMethod(Type type, PropertyInfo propertyInfo)
         {
-            MethodInfo setMethod = propertyInfo.GetSetMethod();
+            MethodInfo setMethod = propertyInfo.GetSetMethod(true);
             if (setMethod == null)
                 return null;
 
             Type[] arguments = new Type[2];
             arguments[0] = arguments[1] = typeof(object);
 
-            DynamicMethod setter = new DynamicMethod("_", typeof(object), arguments);
+            DynamicMethod setter = new DynamicMethod("_", typeof(object), arguments, !setMethod.IsPublic);
             ILGenerator il = setter.GetILGenerator();
 
             if (!type.IsClass) // structs
