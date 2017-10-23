@@ -64,7 +64,7 @@ namespace fastBinaryJSON
 
     internal sealed class Reflection
     {
-        // Sinlgeton pattern 4 from : http://csharpindepth.com/articles/general/singleton.aspx
+        // Singleton pattern 4 from : http://csharpindepth.com/articles/general/singleton.aspx
         private static readonly Reflection instance = new Reflection();
         // Explicit static constructor to tell C# compiler
         // not to mark type as beforefieldinit
@@ -87,6 +87,23 @@ namespace fastBinaryJSON
         private SafeDictionary<string, Dictionary<string, myPropInfo>> _propertycache = new SafeDictionary<string, Dictionary<string, myPropInfo>>();
         private SafeDictionary<Type, Type[]> _genericTypes = new SafeDictionary<Type, Type[]>();
         private SafeDictionary<Type, Type> _genericTypeDef = new SafeDictionary<Type, Type>();
+        private static Dictionary<short, OpCode> _opCodes;
+
+        private static bool TryGetOpCode(short code, out OpCode opCode)
+        {
+            if (_opCodes != null)
+                return _opCodes.TryGetValue(code, out opCode);
+            var dict = new Dictionary<short, OpCode>();
+            foreach (var fi in typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static))
+            {
+                if (!typeof(OpCode).IsAssignableFrom(fi.FieldType)) continue;
+                var innerOpCode = (OpCode)fi.GetValue(null);
+                if (innerOpCode.OpCodeType != OpCodeType.Nternal)
+                    dict.Add(innerOpCode.Value, innerOpCode);
+            }
+            _opCodes = dict;
+            return _opCodes.TryGetValue(code, out opCode);
+        }
 
         #region bjson custom types
         internal UnicodeEncoding unicode = new UnicodeEncoding();
@@ -376,11 +393,57 @@ namespace fastBinaryJSON
             return (GenericSetter)dynamicSet.CreateDelegate(typeof(GenericSetter));
         }
 
+        internal static FieldInfo GetGetterBackingField(PropertyInfo autoProperty)
+        {
+            var getMethod = autoProperty.GetGetMethod();
+            // Restrict operation to auto properties to avoid risking errors if a getter does not contain exactly one field read instruction (such as with calculated properties).
+            if (!getMethod.IsDefined(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), false)) return null;
+
+            var byteCode = getMethod.GetMethodBody()?.GetILAsByteArray() ?? new byte[0];
+            int pos = 0;
+            // Find the first LdFld instruction and parse its operand to a FieldInfo object.
+            while (pos < byteCode.Length)
+            {
+                // Read and parse the OpCode (it can be 1 or 2 bytes in size).
+                byte code = byteCode[pos++];
+                if (!(TryGetOpCode(code,out var opCode) || pos < byteCode.Length && TryGetOpCode((short)(code * 0x100 + byteCode[pos++]), out opCode)))
+                    throw new NotSupportedException("Unknown IL code detected.");
+                // If it is a LdFld, read its operand, parse it to a FieldInfo and return it.
+                if (opCode == OpCodes.Ldfld && opCode.OperandType == OperandType.InlineField && pos + sizeof(int) <= byteCode.Length)
+                {
+                    return getMethod.Module.ResolveMember(BitConverter.ToInt32(byteCode, pos), getMethod.DeclaringType?.GetGenericArguments(), null) as FieldInfo;
+                }
+                // Otherwise, set the current position to the start of the next instruction, if any (we need to know how much bytes are used by operands).
+                pos += opCode.OperandType == OperandType.InlineNone
+                            ? 0
+                            : opCode.OperandType == OperandType.ShortInlineBrTarget ||
+                              opCode.OperandType == OperandType.ShortInlineI ||
+                              opCode.OperandType == OperandType.ShortInlineVar
+                                ? 1
+                                : opCode.OperandType == OperandType.InlineVar
+                                    ? 2
+                                    : opCode.OperandType == OperandType.InlineI8 ||
+                                      opCode.OperandType == OperandType.InlineR
+                                        ? 8
+                                        : opCode.OperandType == OperandType.InlineSwitch
+                                            ? 4 * (BitConverter.ToInt32(byteCode, pos) + 1)
+                                            : 4;
+            }
+            return null;
+        }
+
+
+
         internal static GenericSetter CreateSetMethod(Type type, PropertyInfo propertyInfo)
         {
-            MethodInfo setMethod = propertyInfo.GetSetMethod(true);
+            MethodInfo setMethod = propertyInfo.GetSetMethod(BJSON.Parameters.ShowReadOnlyProperties);
             if (setMethod == null)
-                return null;
+            {
+                if (!BJSON.Parameters.ShowReadOnlyProperties) return null;
+                // If the property has no setter and it is an auto property, try and create a setter for its backing field instead 
+                var fld = GetGetterBackingField(propertyInfo);
+                return fld != null ? CreateSetField(type, fld) : null;
+            }
 
             Type[] arguments = new Type[2];
             arguments[0] = arguments[1] = typeof(object);
