@@ -1582,5 +1582,32 @@ public class tests
 
     }
 
+    public class test { }
+    [Test]
+    public static void ArrayOfObjectExtOff()
+    {
+        var s = BJSON.ToBJSON(new test[] { new test(), new test() }, new BJSONParameters { UseExtensions = false });
+        var o = BJSON.ToObject<test[]>(s);
+        Console.WriteLine(o.GetType().ToString());
+        Assert.AreEqual(typeof(test[]), o.GetType());
+    }
+    [Test]
+    public static void ArrayOfObjectsWithoutTypeInfoToObjectTyped()
+    {
+        var s = BJSON.ToBJSON(new test[] { new test(), new test() });
+        var o = BJSON.ToObject<test[]>(s);
+        Console.WriteLine(o.GetType().ToString());
+        Assert.AreEqual(typeof(test[]), o.GetType());
+    }
+    [Test]
+    public static void ArrayOfObjectsWithTypeInfoToObject()
+    {
+        var s = BJSON.ToBJSON(new test[] { new test(), new test() });
+        var o = BJSON.ToObject(s);
+        Console.WriteLine(o.GetType().ToString());
+        var i = o as test[];
+        Assert.AreEqual(typeof(test), i[0].GetType());
+    }
+
 }// tests.
 //}

@@ -302,7 +302,7 @@ namespace fastBinaryJSON
 #endif
             if (o is typedarray)
             {
-                return ParseTypedArray(null, o);
+                return ParseTypedArray(new Dictionary<string, object>(), o);
             }
             if (o is IDictionary)
             {
@@ -322,8 +322,20 @@ namespace fastBinaryJSON
 
                 if (type == typeof(Hashtable))
                     return RootHashTable((List<object>)o);
-                else
-                    return (o as List<object>).ToArray();
+                else if (type == null)
+                {
+                    List<object> l = (List<object>)o;
+                    if (l.Count > 0 && l[0].GetType() == typeof(Dictionary<string, object>))
+                    {
+                        Dictionary<string, object> globals = new Dictionary<string, object>();
+                        List<object> op = new List<object>();
+                        // try to get $types 
+                        foreach (var i in l)
+                            op.Add(ParseDictionary((Dictionary<string, object>)i, globals, null, null));
+                        return op;
+                    }
+                    return l.ToArray();
+                }
             }
             else if (type != null && o.GetType() != type)
                 return ChangeType(o, type);
@@ -371,12 +383,14 @@ namespace fastBinaryJSON
         {
             Type[] gtypes = Reflection.Instance.GetGenericArguments(type);// type.GetGenericArguments();
             IList o = (IList)Reflection.Instance.FastCreateInstance(type);
+            Dictionary<string, object> globals = new Dictionary<string, object>();
+
             foreach (var k in (IList)parse)
             {
                 _globalTypes = false;
                 object v = k;
                 if (k is Dictionary<string, object>)
-                    v = ParseDictionary(k as Dictionary<string, object>, null, gtypes[0], null);
+                    v = ParseDictionary(k as Dictionary<string, object>, globals, gtypes[0], null);
                 else
                     v = k;
 
@@ -459,6 +473,9 @@ namespace fastBinaryJSON
                     globaltypes.Add((string)kv.Key, kv.Value);
                 }
             }
+
+            if (globaltypes != null)
+                _globalTypes = true;
 
             bool found = d.TryGetValue("$type", out tn);
 #if !SILVERLIGHT
