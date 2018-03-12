@@ -158,7 +158,8 @@ namespace fastBinaryJSON
                     breakparse = true;
                     return TOKENS.COMMA;
                 case TOKENS.ARRAY_TYPED:
-                    return ParseTypedArray();
+                case TOKENS.ARRAY_TYPED_LONG:
+                    return ParseTypedArray(t);
                 case TOKENS.TIMESPAN:
                     return ParsTimeSpan();
             }
@@ -176,11 +177,16 @@ namespace fastBinaryJSON
             return dt;
         }
 
-        private object ParseTypedArray()
+        private object ParseTypedArray(byte token)
         {
-            typedarray ar = new typedarray();
+            // fix : if long name
 
-            ar.typename = ParseName();
+            typedarray ar = new typedarray();
+            if (token == TOKENS.ARRAY_TYPED)
+                ar.typename = ParseName();
+            else
+                ar.typename = ParseNameLong();
+
             ar.count = ParseInt();
 
             bool breakparse = false;
@@ -201,6 +207,15 @@ namespace fastBinaryJSON
                     break;
             }
             return ar;
+        }
+
+        private string ParseNameLong()
+        {
+            short c = (short)Helper.ToInt16(_json, _index);
+            _index += 2;
+            string s = Reflection.Instance.utf8.GetString(_json, _index, c);
+            _index += c;
+            return s;
         }
 
         private object ParseChar()

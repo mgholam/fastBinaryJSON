@@ -1609,5 +1609,41 @@ public class tests
         Assert.AreEqual(typeof(test), i[0].GetType());
     }
 
+
+    public class KeyAndValue<TKey, TValue>
+    {
+        public TKey Key { get; set; }
+        public TValue Value { get; set; }
+    }
+
+    public class Version
+    {
+        public byte Milestone { get; set; }
+        public byte Major { get; set; }
+        public byte Minor { get; set; }
+        public byte Revision { get; set; }
+    }
+
+    public class CommandSendInfo
+    {
+        public KeyAndValue<string, Version>[] Items { get; set; }
+
+    }
+
+    [Test]
+    public static void Longname()
+    {
+
+        var input = new CommandSendInfo
+        {
+            Items = new KeyAndValue<string, Version>[] { new KeyAndValue<string, Version> { Key = "Test", Value = new Version() } }
+        };
+
+        var bjson = fastBinaryJSON.BJSON.ToBJSON(input);
+
+        var output = fastBinaryJSON.BJSON.ToObject<CommandSendInfo>(bjson);
+
+        Assert.AreEqual("Test", output.Items[0].Key);
+    }
 }// tests.
 //}

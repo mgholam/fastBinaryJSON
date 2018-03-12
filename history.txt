@@ -1,3 +1,7 @@
+v1.4.22
+-------
+- bug fix edge case in typed array with long >255 byte type names
+
 v1.4.21
 -------
 - bug fix deserializing array of objects with type information

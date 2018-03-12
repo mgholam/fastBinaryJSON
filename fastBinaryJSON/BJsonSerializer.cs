@@ -187,7 +187,7 @@ namespace fastBinaryJSON
 
         private void WriteException(Exception obj)
         {
-           
+
         }
 
         private void WriteTypedArray(ICollection array)
@@ -199,12 +199,21 @@ namespace fastBinaryJSON
             {
                 if (t.GetElementType().IsClass)
                 {
-                    _output.WriteByte(TOKENS.ARRAY_TYPED);
                     token = false;
                     // array type name
                     byte[] b = Reflection.Instance.utf8.GetBytes(Reflection.Instance.GetTypeAssemblyName(t.GetElementType()));
-                    _output.WriteByte((byte)b.Length);
-                    _output.Write(b, 0, b.Length % 256);
+                    if (b.Length < 256)
+                    {
+                        _output.WriteByte(TOKENS.ARRAY_TYPED);
+                        _output.WriteByte((byte)b.Length);
+                        _output.Write(b, 0, b.Length);
+                    }
+                    else
+                    {
+                        _output.WriteByte(TOKENS.ARRAY_TYPED_LONG);
+                        _output.Write(Helper.GetBytes(b.Length, false), 0, 2);
+                        _output.Write(b, 0, b.Length);
+                    }
                     // array count
                     _output.Write(Helper.GetBytes(array.Count, false), 0, 4); //count
                 }
