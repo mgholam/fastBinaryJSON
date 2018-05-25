@@ -1165,6 +1165,33 @@ public class tests
         Assert.AreEqual(ip.ip, o.ip);
     }
 
+    public class readonlyProps
+    {
+        public List<string> Collection { get; }
+
+        public readonlyProps(List<string> collection)
+        {
+            Collection = collection;
+        }
+
+        public readonlyProps()
+        {
+        }
+    }
+
+    [Test]
+    public static void ReadOnlyProperty()
+    {
+        var dto = new readonlyProps(new List<string> {"test", "test2"});
+
+        BJSON.Parameters.ShowReadOnlyProperties = true;
+        var s = BJSON.ToBJSON(dto);
+        var o = BJSON.ToObject<readonlyProps>(s);
+
+        Assert.IsNotNull(o);
+        CollectionAssert.AreEqual(dto.Collection, o.Collection);
+    }
+    
     //[Test]
     //public static void stringint()
     //{
