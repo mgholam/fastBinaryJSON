@@ -1,3 +1,13 @@
+v1.4.22
+-------
+- bug fix edge case in typed array with long >255 byte type names
+
+v1.4.21
+-------
+- bug fix deserializing array of objects with type information
+- test for above 
+- support for .net core and netstandard2.0 via separate project
+
 v1.4.20
 -------
 - added TimeSpan

@@ -1197,6 +1197,33 @@ public class tests
         CollectionAssert.AreEqual(dto.Collection, o.Collection);
         CollectionAssert.AreEqual(dto.OrderedCollection, o.OrderedCollection);
     }
+
+    public class readonlyProps
+    {
+        public List<string> Collection { get; }
+
+        public readonlyProps(List<string> collection)
+        {
+            Collection = collection;
+        }
+
+        public readonlyProps()
+        {
+        }
+    }
+
+    [Test]
+    public static void ReadOnlyProperty()
+    {
+        var dto = new readonlyProps(new List<string> {"test", "test2"});
+
+        BJSON.Parameters.ShowReadOnlyProperties = true;
+        var s = BJSON.ToBJSON(dto);
+        var o = BJSON.ToObject<readonlyProps>(s);
+
+        Assert.IsNotNull(o);
+        CollectionAssert.AreEqual(dto.Collection, o.Collection);
+    }
     
     //[Test]
     //public static void stringint()
@@ -1615,5 +1642,68 @@ public class tests
 
     }
 
+    public class test { }
+    [Test]
+    public static void ArrayOfObjectExtOff()
+    {
+        var s = BJSON.ToBJSON(new test[] { new test(), new test() }, new BJSONParameters { UseExtensions = false });
+        var o = BJSON.ToObject<test[]>(s);
+        Console.WriteLine(o.GetType().ToString());
+        Assert.AreEqual(typeof(test[]), o.GetType());
+    }
+    [Test]
+    public static void ArrayOfObjectsWithoutTypeInfoToObjectTyped()
+    {
+        var s = BJSON.ToBJSON(new test[] { new test(), new test() });
+        var o = BJSON.ToObject<test[]>(s);
+        Console.WriteLine(o.GetType().ToString());
+        Assert.AreEqual(typeof(test[]), o.GetType());
+    }
+    [Test]
+    public static void ArrayOfObjectsWithTypeInfoToObject()
+    {
+        var s = BJSON.ToBJSON(new test[] { new test(), new test() });
+        var o = BJSON.ToObject(s);
+        Console.WriteLine(o.GetType().ToString());
+        var i = o as test[];
+        Assert.AreEqual(typeof(test), i[0].GetType());
+    }
+
+
+    public class KeyAndValue<TKey, TValue>
+    {
+        public TKey Key { get; set; }
+        public TValue Value { get; set; }
+    }
+
+    public class Version
+    {
+        public byte Milestone { get; set; }
+        public byte Major { get; set; }
+        public byte Minor { get; set; }
+        public byte Revision { get; set; }
+    }
+
+    public class CommandSendInfo
+    {
+        public KeyAndValue<string, Version>[] Items { get; set; }
+
+    }
+
+    [Test]
+    public static void Longname()
+    {
+
+        var input = new CommandSendInfo
+        {
+            Items = new KeyAndValue<string, Version>[] { new KeyAndValue<string, Version> { Key = "Test", Value = new Version() } }
+        };
+
+        var bjson = fastBinaryJSON.BJSON.ToBJSON(input);
+
+        var output = fastBinaryJSON.BJSON.ToObject<CommandSendInfo>(bjson);
+
+        Assert.AreEqual("Test", output.Items[0].Key);
+    }
 }// tests.
 //}
