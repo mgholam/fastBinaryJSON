@@ -115,6 +115,26 @@ namespace fastBinaryJSON
             if (EnableAnonymousTypes)
                 ShowReadOnlyProperties = true;
         }
+
+        internal BJSONParameters MakeCopy()
+        {
+            return new BJSONParameters
+            {  
+                UseOptimizedDatasetSchema = UseOptimizedDatasetSchema,
+                ShowReadOnlyProperties = ShowReadOnlyProperties,
+                EnableAnonymousTypes = EnableAnonymousTypes,
+                UsingGlobalTypes = UsingGlobalTypes,
+                IgnoreAttributes = new List<Type>(IgnoreAttributes),
+                //IgnoreCaseOnDeserialize = IgnoreCaseOnDeserialize,
+                UseUnicodeStrings = UseUnicodeStrings,
+                SerializeNulls = SerializeNulls,
+                ParametricConstructorOverride = ParametricConstructorOverride,
+                SerializerMaxDepth = SerializerMaxDepth,
+                UseTypedArrays = UseTypedArrays,
+                UseExtensions = UseExtensions,
+                UseUTCDateTime = UseUTCDateTime                
+            };
+        }
     }
 
     public static class BJSON
@@ -171,6 +191,7 @@ namespace fastBinaryJSON
         public static byte[] ToBJSON(object obj, BJSONParameters param)
         {
             param.FixValues();
+            param = param.MakeCopy();
             Type t = null;
             if (obj == null)
                 return new byte[] { TOKENS.NULL };
@@ -232,6 +253,7 @@ namespace fastBinaryJSON
         public static object ToObject(byte[] json, BJSONParameters param)
         {
             param.FixValues();
+            param = param.MakeCopy();
             return new deserializer(param).ToObject(json, null);
         }
         /// <summary>
@@ -267,6 +289,7 @@ namespace fastBinaryJSON
         public deserializer(BJSONParameters param)
         {
             _params = param;
+            _params = param.MakeCopy();
         }
 
         private BJSONParameters _params;
@@ -285,15 +308,16 @@ namespace fastBinaryJSON
 
         public object ToObject(byte[] json, Type type)
         {
-            _params.FixValues();
+            //_params.FixValues();
             Type t = null;
             if (type != null && type.IsGenericType)
                 t = Reflection.Instance.GetGenericTypeDefinition(type);// type.GetGenericTypeDefinition();
-            if (t == typeof(Dictionary<,>) || t == typeof(List<>))
-                _params.UsingGlobalTypes = false;
             _globalTypes = _params.UsingGlobalTypes;
+            if (t == typeof(Dictionary<,>) || t == typeof(List<>))
+                _globalTypes = false;
 
             var o = new BJsonParser(json, _params.UseUTCDateTime).Decode();
+            if (type?.IsEnum == true) return CreateEnum(type, o);
 #if !SILVERLIGHT
             if (type != null && type == typeof(DataSet))
                 return CreateDataset(o as Dictionary<string, object>, null);
@@ -421,8 +445,10 @@ namespace fastBinaryJSON
                     _globalTypes = false;
                     object v;
                     object k = kv.Key;
+                    if (t2.Name.StartsWith("Dictionary")) // deserialize a dictionary
+                        v = RootDictionary(kv.Value, t2);
 
-                    if (kv.Value is Dictionary<string, object>)
+                    else if (kv.Value is Dictionary<string, object>)
                         v = ParseDictionary(kv.Value as Dictionary<string, object>, null, t2, null);
 
                     else if (t2 == typeof(byte[]))
@@ -517,7 +543,7 @@ namespace fastBinaryJSON
                 _cirrev.Add(circount, o);
             }
 
-            Dictionary<string, myPropInfo> props = Reflection.Instance.Getproperties(type, typename);//, Reflection.Instance.IsTypeRegistered(type));
+            Dictionary<string, myPropInfo> props = Reflection.Instance.Getproperties(type, typename, _params.ShowReadOnlyProperties);//, Reflection.Instance.IsTypeRegistered(type));
             foreach (var kv in d)
             {
                 var n = kv.Key;

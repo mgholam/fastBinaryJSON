@@ -1180,7 +1180,7 @@ public class tests
     }
 
     [Test]
-    public static void ReadOnlyProperty()
+    public static void ReadOnlyProperty() // rbeurskens 
     {
         var dto = new readonlyProps(new List<string> {"test", "test2"});
 
@@ -1671,6 +1671,44 @@ public class tests
         var output = fastBinaryJSON.BJSON.ToObject<CommandSendInfo>(bjson);
 
         Assert.AreEqual("Test", output.Items[0].Key);
+    }
+
+    [Test]
+    public static void dicofdic()
+    {
+        var d = new Dictionary<string, Dictionary<string, string>>();
+        var dd = new Dictionary<string, string>();
+        dd.Add("Key1", "Value1");
+        dd.Add("Key2", "Value2");
+        dd.Add("Key3", "Value3");
+        dd.Add("Key4", "Value4");
+        dd.Add("Key5", "Value5");
+        d.Add("Section1", dd);
+        var s = BJSON.ToBJSON(d, new BJSONParameters { UseExtensions = false });
+        var o = BJSON.ToObject<Dictionary<string, Dictionary<string, string>>>(s);
+        var v = o["Section1"];
+
+        Assert.AreEqual(5, v.Count);
+        Assert.AreEqual("Value2", v["Key2"]);
+    }
+
+
+    public enum MyEnum
+    {
+        a,
+        b
+    }
+    [Test]
+    public static void RootEnum()
+    {
+        var e = MyEnum.b;
+        var s = BJSON.ToBJSON(e);
+
+        var o = BJSON.ToObject<MyEnum>(s);
+        Assert.AreEqual(e, o);
+
+        o = (MyEnum)BJSON.ToObject(s, typeof(MyEnum));
+        Assert.AreEqual(e, o);
     }
 }// tests.
 //}
