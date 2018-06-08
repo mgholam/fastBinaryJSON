@@ -1,3 +1,11 @@
+v1.4.23
+-------
+- fixed side effect of changing BJSONParameters.UsingGlobalTypes inside classes and affecting the original value
+- fixed deserialize nested Dictionary without extensions with generic ToObject<>
+- fixed root enum deserialize (thanks to al6uiz)
+- Non public setter / readonly property support (thanks to rbeurskens)
+- unify reflection.cs with fastJSON
+
 v1.4.22
 -------
 - bug fix edge case in typed array with long >255 byte type names

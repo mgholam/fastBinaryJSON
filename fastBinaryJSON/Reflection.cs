@@ -4,6 +4,7 @@ using System.Reflection.Emit;
 using System.Reflection;
 using System.Collections;
 using System.Text;
+using System.Runtime.Serialization;
 #if !SILVERLIGHT
 using System.Data;
 #endif
@@ -16,6 +17,7 @@ namespace fastBinaryJSON
     {
         public string Name;
         public string lcName;
+        public string memberName;
         public Reflection.GenericGetter Getter;
     }
 
@@ -53,6 +55,9 @@ namespace fastBinaryJSON
         public Reflection.GenericGetter getter;
         public Type[] GenericTypes;
         public string Name;
+#if NET4
+        public string memberName;
+#endif
         public myPropInfoType Type;
         public bool CanWrite;
 
@@ -157,7 +162,7 @@ namespace fastBinaryJSON
         {
             if (_opCodes != null)
                 return _opCodes.TryGetValue(code, out opCode);
-            var dict = new Dictionary<short, OpCode>();
+            var dict = new SafeDictionary<short, OpCode>();
             foreach (var fi in typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static))
             {
                 if (!typeof(OpCode).IsAssignableFrom(fi.FieldType)) continue;
@@ -267,7 +272,7 @@ namespace fastBinaryJSON
             }
         }
 
-        public Dictionary<string, myPropInfo> Getproperties(Type type, string typename)
+        public Dictionary<string, myPropInfo> Getproperties(Type type, string typename, bool ShowReadOnlyProperties)
         {
             Dictionary<string, myPropInfo> sd = null;
             if (_propertycache.TryGetValue(typename, out sd))
@@ -285,11 +290,26 @@ namespace fastBinaryJSON
                         continue;
 
                     myPropInfo d = CreateMyProp(p.PropertyType, p.Name);
-                    d.setter = Reflection.CreateSetMethod(type, p);
+                    d.setter = Reflection.CreateSetMethod(type, p, ShowReadOnlyProperties);
                     if (d.setter != null)
                         d.CanWrite = true;
                     d.getter = Reflection.CreateGetMethod(type, p);
-                    sd.Add(p.Name.ToLower(), d);
+#if NET4
+                    var att = p.GetCustomAttributes(true);
+                    foreach (var at in att)
+                    {
+                        if (at is DataMemberAttribute)
+                        {
+                            var dm = (DataMemberAttribute)at;
+                            if (dm.Name != "")
+                                d.memberName = dm.Name;
+                        }
+                    }
+                    if (d.memberName != null)
+                        sd.Add(d.memberName, d);
+                    else
+#endif
+                        sd.Add(p.Name.ToLower(), d);
                 }
                 FieldInfo[] fi = type.GetFields(bf);
                 foreach (FieldInfo f in fi)
@@ -301,7 +321,22 @@ namespace fastBinaryJSON
                         if (d.setter != null)
                             d.CanWrite = true;
                         d.getter = Reflection.CreateGetField(type, f);
-                        sd.Add(f.Name.ToLower(), d);
+#if NET4
+                        var att = f.GetCustomAttributes(true);
+                        foreach (var at in att)
+                        {
+                            if (at is DataMemberAttribute)
+                            {
+                                var dm = (DataMemberAttribute)at;
+                                if (dm.Name != "")
+                                    d.memberName = dm.Name;
+                            }
+                        }
+                        if (d.memberName != null)
+                            sd.Add(d.memberName, d);
+                        else
+#endif
+                            sd.Add(f.Name.ToLower(), d);
                     }
                 }
 
@@ -505,7 +540,7 @@ namespace fastBinaryJSON
             {
                 // Read and parse the OpCode (it can be 1 or 2 bytes in size).
                 byte code = byteCode[pos++];
-                if (!(TryGetOpCode(code,out var opCode) || pos < byteCode.Length && TryGetOpCode((short)(code * 0x100 + byteCode[pos++]), out opCode)))
+                if (!(TryGetOpCode(code, out var opCode) || pos < byteCode.Length && TryGetOpCode((short)(code * 0x100 + byteCode[pos++]), out opCode)))
                     throw new NotSupportedException("Unknown IL code detected.");
                 // If it is a LdFld, read its operand, parse it to a FieldInfo and return it.
                 if (opCode == OpCodes.Ldfld && opCode.OperandType == OperandType.InlineField && pos + sizeof(int) <= byteCode.Length)
@@ -531,14 +566,12 @@ namespace fastBinaryJSON
             return null;
         }
 
-
-
-        internal static GenericSetter CreateSetMethod(Type type, PropertyInfo propertyInfo)
+        internal static GenericSetter CreateSetMethod(Type type, PropertyInfo propertyInfo, bool ShowReadOnlyProperties)
         {
-            MethodInfo setMethod = propertyInfo.GetSetMethod(BJSON.Parameters.ShowReadOnlyProperties);
+            MethodInfo setMethod = propertyInfo.GetSetMethod(ShowReadOnlyProperties);
             if (setMethod == null)
             {
-                if (!BJSON.Parameters.ShowReadOnlyProperties) return null;
+                if (!ShowReadOnlyProperties) return null;
                 // If the property has no setter and it is an auto property, try and create a setter for its backing field instead 
                 var fld = GetGetterBackingField(propertyInfo);
                 return fld != null ? CreateSetField(type, fld) : null;
@@ -674,8 +707,6 @@ namespace fastBinaryJSON
             if (_getterscache.TryGetValue(type, out val))
                 return val;
 
-            //bool isAnonymous = IsAnonymousType(type);
-
             var bf = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static;
             //if (ShowReadOnlyProperties)
             //    bf |= BindingFlags.NonPublic;
@@ -703,9 +734,24 @@ namespace fastBinaryJSON
                     if (found)
                         continue;
                 }
+                string mName = null;
+#if NET4
+                var att = p.GetCustomAttributes(true);
+                foreach (var at in att)
+                {
+                    if (at is DataMemberAttribute)
+                    {
+                        var dm = (DataMemberAttribute)at;
+                        if (dm.Name != "")
+                        {
+                            mName = dm.Name;
+                        }
+                    }
+                }
+#endif
                 GenericGetter g = CreateGetMethod(type, p);
                 if (g != null)
-                    getters.Add(new Getters { Getter = g, Name = p.Name, lcName = p.Name.ToLower() });
+                    getters.Add(new Getters { Getter = g, Name = p.Name, lcName = p.Name.ToLower(), memberName = mName });
             }
 
             FieldInfo[] fi = type.GetFields(bf);
@@ -725,11 +771,26 @@ namespace fastBinaryJSON
                     if (found)
                         continue;
                 }
+                string mName = null;
+#if NET4
+                var att = f.GetCustomAttributes(true);
+                foreach (var at in att)
+                {
+                    if (at is DataMemberAttribute)
+                    {
+                        var dm = (DataMemberAttribute)at;
+                        if (dm.Name != "")
+                        {
+                            mName = dm.Name;
+                        }
+                    }
+                }
+#endif
                 if (f.IsLiteral == false)
                 {
                     GenericGetter g = CreateGetField(type, f);
                     if (g != null)
-                        getters.Add(new Getters { Getter = g, Name = f.Name, lcName = f.Name.ToLower() });
+                        getters.Add(new Getters { Getter = g, Name = f.Name, lcName = f.Name.ToLower(), memberName = mName });
                 }
             }
             val = getters.ToArray();
