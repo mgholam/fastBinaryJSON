@@ -1,3 +1,8 @@
+v1.4.24*
+-------
+- fixed Typed Arrays of value types are serialized incorrectly when they are the root object (thanks to rbeurskens)
+- 
+
 v1.4.23
 -------
 - fixed side effect of changing BJSONParameters.UsingGlobalTypes inside classes and affecting the original value

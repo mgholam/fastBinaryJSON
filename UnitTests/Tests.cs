@@ -1497,6 +1497,13 @@ public class tests
 
         var r = BJSON.ToObject<objcontainer>(s);
         Assert.True(typeof(simpclass[]) == r.ds.GetType());
+
+
+        // value type array as root
+        var ii = new int[] { 1, 2, 3, 4, 5 };
+        s = BJSON.ToBJSON(ii);
+        var rr = BJSON.ToObject<int[]>(s);
+        Assert.True(typeof(int[]) == rr.GetType());
     }
 
     [Test]

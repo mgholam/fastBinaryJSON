@@ -197,7 +197,7 @@ namespace fastBinaryJSON
             var t = array.GetType();
             if (t != null) // non generic array
             {
-                if (t.GetElementType().IsClass)
+                //if (t.GetElementType().IsClass)
                 {
                     token = false;
                     // array type name
