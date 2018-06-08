@@ -195,7 +195,7 @@ namespace fastBinaryJSON
             bool pendingSeperator = false;
             bool token = true;
             var t = array.GetType();
-            if (t != null) // non generic array
+            if (t.IsGenericType == false)// != null) // non generic array
             {
                 //if (t.GetElementType().IsClass)
                 {
