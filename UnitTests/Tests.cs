@@ -1717,5 +1717,23 @@ public class tests
         o = (MyEnum)BJSON.ToObject(s, typeof(MyEnum));
         Assert.AreEqual(e, o);
     }
+
+
+    private class npc
+    {
+        public int a = 1;
+        public int b = 2;
+    }
+    [Test]
+    public static void NonPublicClass()
+    {
+        var p = new npc();
+        p.a = 10;
+        p.b = 20;
+        var s = BJSON.ToBJSON(p);
+        var o = (npc)BJSON.ToObject(s);
+        Assert.AreEqual(10, o.a);
+        Assert.AreEqual(20, o.b);
+    }
 }// tests.
 //}

@@ -1,7 +1,7 @@
-v1.4.24*
+v1.4.24
 -------
 - fixed Typed Arrays of value types are serialized incorrectly when they are the root object (thanks to rbeurskens)
-- 
+- ability to create internal/private objects (removed the public access restriction on classes)
 
 v1.4.23
 -------
