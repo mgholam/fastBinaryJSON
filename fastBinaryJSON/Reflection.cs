@@ -113,8 +113,18 @@ namespace fastBinaryJSON
         }
 
         #region bjson custom types
-        internal UnicodeEncoding unicode = new UnicodeEncoding();
-        internal UTF8Encoding utf8 = new UTF8Encoding();
+        //internal UnicodeEncoding unicode = new UnicodeEncoding();
+        private static UTF8Encoding utf8 = new UTF8Encoding();
+
+        public static byte[] UTF8GetBytes(string str)
+        {
+            return utf8.GetBytes(str);
+        }
+
+        public static string UTF8GetString(byte[] bytes, int offset, int len)
+        {
+            return utf8.GetString(bytes, offset, len);
+        }
 
         public unsafe static byte[] UnicodeGetBytes(string str)
         {
@@ -127,13 +137,13 @@ namespace fastBinaryJSON
             return b;
         }
 
-        public unsafe static string UnicodeGetString(byte[] bytes, int offset, int len)
+        public unsafe static string UnicodeGetString(byte[] bytes, int offset, int buflen)
         {
             string str = "";
             fixed (byte* bptr = bytes)
             {
                 char* cptr = (char*)(bptr + offset);
-                str = new string(cptr, 0, len);
+                str = new string(cptr, 0, buflen / 2);
             }
             return str;
         }

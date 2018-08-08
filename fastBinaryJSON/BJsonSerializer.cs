@@ -185,10 +185,10 @@ namespace fastBinaryJSON
             _output.Write(b, 0, b.Length);
         }
 
-        private void WriteException(Exception obj)
-        {
+        //private void WriteException(Exception obj)
+        //{
 
-        }
+        //}
 
         private void WriteTypedArray(ICollection array)
         {
@@ -201,7 +201,7 @@ namespace fastBinaryJSON
                 {
                     token = false;
                     // array type name
-                    byte[] b = Reflection.Instance.utf8.GetBytes(Reflection.Instance.GetTypeAssemblyName(t.GetElementType()));
+                    byte[] b = Reflection.UnicodeGetBytes(Reflection.Instance.GetTypeAssemblyName(t.GetElementType()));
                     if (b.Length < 256)
                     {
                         _output.WriteByte(TOKENS.ARRAY_TYPED);
@@ -685,9 +685,17 @@ namespace fastBinaryJSON
 
         private void WriteName(string s)
         {
-            _output.WriteByte(TOKENS.NAME);
-            byte[] b = Reflection.Instance.utf8.GetBytes(s);
-            //byte[] b = Reflection.UnicodeGetBytes(s);
+            byte[] b;
+            if (_params.UseUnicodeStrings == false)
+            {
+                _output.WriteByte(TOKENS.NAME);
+                b = Reflection.UTF8GetBytes(s);
+            }
+            else
+            {
+                _output.WriteByte(TOKENS.NAME_UNI);
+                b = Reflection.UnicodeGetBytes(s);
+            }
             _output.WriteByte((byte)b.Length);
             _output.Write(b, 0, b.Length % 256);
         }
@@ -703,7 +711,7 @@ namespace fastBinaryJSON
             else
             {
                 _output.WriteByte(TOKENS.STRING);
-                b = Reflection.Instance.utf8.GetBytes(s);
+                b = Reflection.UTF8GetBytes(s);
             }
             _output.Write(Helper.GetBytes(b.Length, false), 0, 4);
             _output.Write(b, 0, b.Length);

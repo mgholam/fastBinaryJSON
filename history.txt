@@ -1,3 +1,10 @@
+v1.5.0
+------
+- moved .net 3.5 project to own folder to mitigate conflicting obj builds
+- carried over fastjson style optimizations
+- major string optimizations ~46% faster if using unicode strings
+- * breaking changes in output bytes (when using typed arrays) * 
+
 v1.4.24
 -------
 - fixed Typed Arrays of value types are serialized incorrectly when they are the root object (thanks to rbeurskens)
