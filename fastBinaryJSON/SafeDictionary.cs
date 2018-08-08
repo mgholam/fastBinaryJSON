@@ -8,6 +8,15 @@ namespace fastBinaryJSON
         private readonly object _Padlock = new object();
         private readonly Dictionary<TKey, TValue> _Dictionary = new Dictionary<TKey, TValue>();
 
+        public SafeDictionary(int capacity)
+        {
+            _Dictionary = new Dictionary<TKey, TValue>(capacity);
+        }
+
+        public SafeDictionary()
+        {
+            _Dictionary = new Dictionary<TKey, TValue>();
+        }
 
         public bool TryGetValue(TKey key, out TValue value)
         {

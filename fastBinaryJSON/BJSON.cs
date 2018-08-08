@@ -407,7 +407,7 @@ namespace fastBinaryJSON
         private object RootList(object parse, Type type)
         {
             Type[] gtypes = Reflection.Instance.GetGenericArguments(type);// type.GetGenericArguments();
-            IList o = (IList)Reflection.Instance.FastCreateInstance(type);
+            IList o = (IList)Reflection.Instance.FastCreateList(type, ((IList)parse).Count);
             Dictionary<string, object> globals = new Dictionary<string, object>();
 
             foreach (var k in (IList)parse)
@@ -548,7 +548,7 @@ namespace fastBinaryJSON
             {
                 var n = kv.Key;
                 var v = kv.Value;
-                string name = n.ToLower();
+                string name = n.ToLowerInvariant();
                 myPropInfo pi;
                 if (props.TryGetValue(name, out pi) == false)
                     continue;
@@ -704,7 +704,7 @@ namespace fastBinaryJSON
         {
             if (pt != typeof(object))
             {
-                IList col = (IList)Reflection.Instance.FastCreateInstance(pt);
+                IList col = (IList)Reflection.Instance.FastCreateList(pt, data.Count);
                 // create an array of objects
                 foreach (object ob in data)
                 {
@@ -737,7 +737,7 @@ namespace fastBinaryJSON
                 t2 = types[1];
 
             Type generictype = null;
-            var ga = t2.GetGenericArguments();
+            var ga = Reflection.Instance.GetGenericArguments(t2);
             if (ga.Length > 0)
                 generictype = ga[0];
             arraytype = t2.GetElementType();

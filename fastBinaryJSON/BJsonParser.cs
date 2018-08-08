@@ -23,7 +23,7 @@ namespace fastBinaryJSON
 
         private Dictionary<string, object> ParseObject()
         {
-            Dictionary<string, object> dic = new Dictionary<string, object>();
+            Dictionary<string, object> dic = new Dictionary<string, object>(10);
             bool breakparse = false;
             while (!breakparse)
             {

@@ -687,6 +687,7 @@ namespace fastBinaryJSON
         {
             _output.WriteByte(TOKENS.NAME);
             byte[] b = Reflection.Instance.utf8.GetBytes(s);
+            //byte[] b = Reflection.UnicodeGetBytes(s);
             _output.WriteByte((byte)b.Length);
             _output.Write(b, 0, b.Length % 256);
         }
@@ -697,7 +698,7 @@ namespace fastBinaryJSON
             if (_params.UseUnicodeStrings)
             {
                 _output.WriteByte(TOKENS.UNICODE_STRING);
-                b = Reflection.Instance.unicode.GetBytes(s);
+                b = Reflection.UnicodeGetBytes(s);
             }
             else
             {
