@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Collections;
 using System.Text;
 using System.Runtime.Serialization;
+using fastBinaryJSON;
 #if !SILVERLIGHT
 using System.Data;
 #endif
@@ -12,7 +13,7 @@ using System.Collections.Specialized;
 
 namespace fastBinaryJSON
 {
-    internal struct Getters
+    public struct Getters
     {
         public string Name;
         public string lcName;
@@ -20,7 +21,7 @@ namespace fastBinaryJSON
         public Reflection.GenericGetter Getter;
     }
 
-    internal enum myPropInfoType
+    public enum myPropInfoType
     {
         Int,
         Long,
@@ -45,7 +46,7 @@ namespace fastBinaryJSON
         Unknown,
     }
 
-    internal class myPropInfo
+    public class myPropInfo
     {
         public Type pt;
         public Type bt;
@@ -67,7 +68,7 @@ namespace fastBinaryJSON
         public bool IsInterface;
     }
 
-    internal sealed class Reflection
+    public sealed class Reflection
     {
         // Singleton pattern 4 from : http://csharpindepth.com/articles/general/singleton.aspx
         private static readonly Reflection instance = new Reflection();
@@ -81,8 +82,8 @@ namespace fastBinaryJSON
         }
         public static Reflection Instance { get { return instance; } }
 
-        internal delegate object GenericSetter(object target, object value);
-        internal delegate object GenericGetter(object obj);
+        public delegate object GenericSetter(object target, object value);
+        public delegate object GenericGetter(object obj);
         private delegate object CreateObject();
         private delegate object CreateList(int capacity);
 
@@ -116,6 +117,7 @@ namespace fastBinaryJSON
         //internal UnicodeEncoding unicode = new UnicodeEncoding();
         private static UTF8Encoding utf8 = new UTF8Encoding();
 
+        // TODO : optimize utf8 
         public static byte[] UTF8GetBytes(string str)
         {
             return utf8.GetBytes(str);
@@ -348,7 +350,7 @@ namespace fastBinaryJSON
 
         #region [   PROPERTY GET SET   ]
 
-        internal string GetTypeAssemblyName(Type t)
+        public string GetTypeAssemblyName(Type t)
         {
             string val = "";
             if (_tyname.TryGetValue(t, out val))
@@ -668,7 +670,7 @@ namespace fastBinaryJSON
             return (GenericGetter)getter.CreateDelegate(typeof(GenericGetter));
         }
 
-        internal Getters[] GetGetters(Type type, bool ShowReadOnlyProperties, List<Type> IgnoreAttributes)
+        public Getters[] GetGetters(Type type, bool ShowReadOnlyProperties, List<Type> IgnoreAttributes)
         {
             Getters[] val = null;
             if (_getterscache.TryGetValue(type, out val))
