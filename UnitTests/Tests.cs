@@ -9,6 +9,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Dynamic;
+using System.Collections.ObjectModel;
 
 //namespace UnitTests
 //{
@@ -1734,6 +1735,39 @@ public class tests
         var o = (npc)BJSON.ToObject(s);
         Assert.AreEqual(10, o.a);
         Assert.AreEqual(20, o.b);
+    }
+
+    public class Item
+    {
+        public int Id { get; set; }
+        public string Data { get; set; }
+    }
+
+    public class TestObject
+    {
+        public int Id { get; set; }
+        public string Stuff { get; set; }
+        public virtual ObservableCollection<Item> Items { get; set; }
+    }
+
+
+    [Test]
+    public static void noncapacitylist()
+    {
+        TestObject testObject = new TestObject
+        {
+            Id = 1,
+            Stuff = "test",
+            Items = new ObservableCollection<Item>()
+        };
+
+        testObject.Items.Add(new Item { Id = 1, Data = "Item 1" });
+        testObject.Items.Add(new Item { Id = 2, Data = "Item 2" });
+
+        var s = BJSON.ToBJSON(testObject);
+
+        TestObject copyObject = new TestObject();
+        BJSON.FillObject(copyObject, s);
     }
 }// tests.
 //}

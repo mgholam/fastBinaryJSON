@@ -134,6 +134,8 @@ namespace consoletest
             // object oo = fastBinaryJSON.BJSON.ToObject<NoExt>(str);//<NoExt>(str);
 
             Console.WriteLine(".net version = " + Environment.Version);
+            Console.WriteLine(".net os = " + Environment.OSVersion);
+            //Console.WriteLine("is windows = " + fastBinaryJSON.Reflection.Instance.isWindows);
             Console.WriteLine("press key : (E)xotic ");
             //if (Console.ReadKey().Key == ConsoleKey.E)
             //    exotic = true;
