@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace fastBinaryJSON
+namespace fastJSON
 {
     internal sealed class SafeDictionary<TKey, TValue>
     {
         private readonly object _Padlock = new object();
-        private readonly Dictionary<TKey, TValue> _Dictionary = new Dictionary<TKey, TValue>();
+        private readonly Dictionary<TKey, TValue> _Dictionary;
 
         public SafeDictionary(int capacity)
         {
@@ -24,6 +24,11 @@ namespace fastBinaryJSON
                 return _Dictionary.TryGetValue(key, out value);
         }
 
+        public int Count()
+        {
+            lock (_Padlock) return _Dictionary.Count;
+        }
+
         public TValue this[TKey key]
         {
             get
@@ -37,8 +42,6 @@ namespace fastBinaryJSON
                     _Dictionary[key] = value;
             }
         }
-
-        public int Count { get { lock (_Padlock) return _Dictionary.Count;}}
 
         public void Add(TKey key, TValue value)
         {

@@ -6,6 +6,7 @@ using System.Data;
 #endif
 using System.IO;
 using System.Collections.Specialized;
+using fastJSON;
 
 namespace fastBinaryJSON
 {
@@ -148,7 +149,7 @@ namespace fastBinaryJSON
                 WriteDataset((DataSet)obj);
 
             else if (obj is DataTable)
-                this.WriteDataTable((DataTable)obj);
+                WriteDataTable((DataTable)obj);
 #endif
             else if (obj is byte[])
                 WriteBytes((byte[])obj);
@@ -171,9 +172,6 @@ namespace fastBinaryJSON
             else if (Reflection.Instance.IsTypeRegistered(obj.GetType()))
                 WriteCustom(obj);
 
-            //else if (obj is Exception)
-            //    WriteException((Exception)obj);
-
             else
                 WriteObject(obj);
         }
@@ -185,11 +183,6 @@ namespace fastBinaryJSON
             _output.Write(b, 0, b.Length);
         }
 
-        //private void WriteException(Exception obj)
-        //{
-
-        //}
-
         private void WriteTypedArray(ICollection array)
         {
             bool pendingSeperator = false;
@@ -200,8 +193,12 @@ namespace fastBinaryJSON
                 //if (t.GetElementType().IsClass)
                 {
                     token = false;
+                    byte[] b;
                     // array type name
-                    byte[] b = Reflection.UnicodeGetBytes(Reflection.Instance.GetTypeAssemblyName(t.GetElementType()));
+                    if (_params.v1_4TypedArray)
+                        b = Reflection.UTF8GetBytes(Reflection.Instance.GetTypeAssemblyName(t.GetElementType()));
+                    else
+                        b = Reflection.UnicodeGetBytes(Reflection.Instance.GetTypeAssemblyName(t.GetElementType()));
                     if (b.Length < 256)
                     {
                         _output.WriteByte(TOKENS.ARRAY_TYPED);
@@ -353,7 +350,7 @@ namespace fastBinaryJSON
 
         private void WriteCustom(object obj)
         {
-            Serialize s;
+            Reflection.Serialize s;
             Reflection.Instance._customSerializer.TryGetValue(obj.GetType(), out s);
             WriteString(s(obj));
         }
