@@ -112,6 +112,9 @@ namespace fastBinaryJSON
         /// </summary>
         public bool v1_4TypedArray = false;
 
+        //public bool OptimizeSize = false;
+
+
         public void FixValues()
         {
             if (UseExtensions == false) // disable conflicting params
@@ -124,20 +127,22 @@ namespace fastBinaryJSON
         internal BJSONParameters MakeCopy()
         {
             return new BJSONParameters
-            {  
+            {
                 UseOptimizedDatasetSchema = UseOptimizedDatasetSchema,
                 ShowReadOnlyProperties = ShowReadOnlyProperties,
                 EnableAnonymousTypes = EnableAnonymousTypes,
                 UsingGlobalTypes = UsingGlobalTypes,
                 IgnoreAttributes = new List<Type>(IgnoreAttributes),
-                //IgnoreCaseOnDeserialize = IgnoreCaseOnDeserialize,
                 UseUnicodeStrings = UseUnicodeStrings,
                 SerializeNulls = SerializeNulls,
                 ParametricConstructorOverride = ParametricConstructorOverride,
                 SerializerMaxDepth = SerializerMaxDepth,
                 UseTypedArrays = UseTypedArrays,
                 UseExtensions = UseExtensions,
-                UseUTCDateTime = UseUTCDateTime                
+                UseUTCDateTime = UseUTCDateTime,
+                v1_4TypedArray = v1_4TypedArray//,
+                //OptimizeSize = OptimizeSize
+
             };
         }
     }
@@ -723,7 +728,7 @@ namespace fastBinaryJSON
                         else
                             col.Add(((List<object>)ob).ToArray());
                     }
-                    else if(ob is typedarray)
+                    else if (ob is typedarray)
                         col.Add(((typedarray)ob).data.ToArray());
                     else
                         col.Add(ob);

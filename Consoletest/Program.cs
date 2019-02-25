@@ -85,6 +85,7 @@ namespace consoletest
         public class test { }
         public static void Main(string[] args)
         {
+
             //fastbjson_deserialize(10);
             //return;
             // Return r = new Return();

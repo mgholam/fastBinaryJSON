@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using fastBinaryJSON;
 using NUnit.Framework;
-using System.Data;
+using System;
 using System.Collections;
-using System.Threading;
-using fastBinaryJSON;
-using System.Collections.Specialized;
-using System.Diagnostics;
-using System.Linq;
-using System.Dynamic;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Data;
+using System.Diagnostics;
+using System.Dynamic;
+using System.Linq;
+using System.Threading;
 
 //namespace UnitTests
 //{
@@ -1127,7 +1127,7 @@ public class tests
             jsonText = BJSON.ToBJSON(c);
 
             stopwatch.Stop();
-            Console.Write("\t" + stopwatch.ElapsedMilliseconds+"ms");
+            Console.Write("\t" + stopwatch.ElapsedMilliseconds + "ms");
             Console.Write("\tcount = " + c.items.Count);
             Console.WriteLine("\tsize = " + jsonText.Length.ToString("#,#"));
         }
@@ -1183,7 +1183,7 @@ public class tests
     [Test]
     public static void ReadOnlyProperty() // rbeurskens 
     {
-        var dto = new readonlyProps(new List<string> {"test", "test2"});
+        var dto = new readonlyProps(new List<string> { "test", "test2" });
 
         BJSON.Parameters.ShowReadOnlyProperties = true;
         var s = BJSON.ToBJSON(dto);
@@ -1192,7 +1192,7 @@ public class tests
         Assert.IsNotNull(o);
         CollectionAssert.AreEqual(dto.Collection, o.Collection);
     }
-    
+
     //[Test]
     //public static void stringint()
     //{
@@ -1769,5 +1769,22 @@ public class tests
         TestObject copyObject = new TestObject();
         BJSON.FillObject(copyObject, s);
     }
+
+    //public class sizeop
+    //{
+    //    public int a = 10;
+    //    public int b = 1000;
+    //    public int v = 1000 * 1000;
+    //}
+
+    //[Test]
+    //public static void sizetest()
+    //{
+    //    var s = BJSON.ToBJSON(new sizeop(), new BJSONParameters { OptimizeSize = true , UseExtensions = false });
+    //    var t = BJSON.ToBJSON(new sizeop(), new BJSONParameters { UseExtensions = false});
+    //    var o = BJSON.ToObject<sizeop>(s);
+
+    //    Assert.AreEqual(10, o.a);
+    //}
 }// tests.
 //}

@@ -1,3 +1,7 @@
+v1.5.2
+------
+- bug fix datasets with sbyte data
+
 v1.5.1
 ------
 - fixed fast creating lists without capacity constructor

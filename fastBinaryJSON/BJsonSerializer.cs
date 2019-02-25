@@ -114,6 +114,9 @@ namespace fastBinaryJSON
             else if (obj is decimal)
                 WriteDecimal((decimal)obj);
 
+            else if (obj is sbyte)
+                WriteSByte((sbyte)obj);
+
             else if (obj is byte)
                 WriteByte((byte)obj);
 
@@ -174,6 +177,13 @@ namespace fastBinaryJSON
 
             else
                 WriteObject(obj);
+        }
+
+        private void WriteSByte(sbyte p)
+        {
+            _output.WriteByte(TOKENS.BYTE);
+            byte i = (byte)p;
+            _output.WriteByte(i);
         }
 
         private void WriteTimeSpan(TimeSpan obj)
@@ -372,6 +382,19 @@ namespace fastBinaryJSON
 
         private void WriteInt(int i)
         {
+            //if (_params.OptimizeSize)
+            //{
+            //    if (i < 256)
+            //    {
+            //        WriteByte((byte)i);
+            //        return;
+            //    }
+            //    else if (i < 65536)
+            //    {
+            //        WriteUShort((ushort)i);
+            //        return;
+            //    }
+            //}
             _output.WriteByte(TOKENS.INT);
             _output.Write(Helper.GetBytes(i, false), 0, 4);
         }
