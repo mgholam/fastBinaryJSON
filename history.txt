@@ -1,3 +1,7 @@
+v1.5.3
+------
+- synced Reflection.cs with fastJSON v2.2.5
+
 v1.5.2
 ------
 - bug fix datasets with sbyte data
