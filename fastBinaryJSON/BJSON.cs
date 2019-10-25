@@ -529,7 +529,7 @@ namespace fastBinaryJSON
                     if (globaltypes != null && globaltypes.TryGetValue((string)tn, out tname))
                         tn = tname;
                 }
-                type = Reflection.Instance.GetTypeFromCache((string)tn);
+                type = Reflection.Instance.GetTypeFromCache((string)tn, true);
             }
 
             if (type == null)
@@ -632,7 +632,7 @@ namespace fastBinaryJSON
         {
             object oset;
             var ta = (typedarray)v;
-            var t = Reflection.Instance.GetTypeFromCache(ta.typename);
+            var t = Reflection.Instance.GetTypeFromCache(ta.typename, true);
             IList a = Array.CreateInstance(t, ta.count);
             int i = 0;
             foreach (var dd in ta.data)
