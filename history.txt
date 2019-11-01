@@ -1,3 +1,7 @@
+v1.6.1
+------
+- optimized black list checking
+
 v1.6.0
 ------
 - friday 13th json attack checking
