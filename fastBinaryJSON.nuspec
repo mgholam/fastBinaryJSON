@@ -2,18 +2,20 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>fastBinaryJSON</id>
-        <version>1.4.20.0</version>
+        <version>1.6.1.0</version>
         <title>fastBinaryJSON</title>
         <authors>mgholam</authors>
         <owners />
-        <projectUrl>http://fastbinaryjson.codeplex.com/</projectUrl>
+        <projectUrl>https://www.codeproject.com/Articles/345070/fastBinaryJSON</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>smallest, fastest polymorphic binary JSON serializer</description>
     </metadata>
     <files>
 		<file src="output\net20\fastbinaryjson.dll" target="lib\net20\fastbinaryjson.dll" />
 		<file src="output\net20\fastbinaryjson.dll" target="lib\net35\fastbinaryjson.dll" />
-	    <file src="output\net40\fastbinaryjson.dll" target="lib\net40\fastbinaryjson.dll" />
+	        <file src="output\net40\fastbinaryjson.dll" target="lib\net40\fastbinaryjson.dll" />
+       	        <file src="output\net4.0\fastbinaryjson.dll" target="lib\net4.0\fastbinaryjson.dll" />
+            	<file src="output\netstandard2.0\fastbinaryjson.dll" target="lib\netstandard2.0\fastbinaryjson.dll" />
 		<file src="history.txt" target="lib\history.txt" />
 		<file src="readme.md" target="lib\readme.md" />
     </files>

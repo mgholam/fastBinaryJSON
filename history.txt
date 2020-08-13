@@ -1,3 +1,57 @@
+v1.6.1
+------
+- optimized black list checking
+
+v1.6.0
+------
+- friday 13th json attack checking
+
+v1.5.3
+------
+- synced Reflection.cs with fastJSON v2.2.5
+
+v1.5.2
+------
+- bug fix datasets with sbyte data
+
+v1.5.1
+------
+- fixed fast creating lists without capacity constructor
+- fixed signing in .net35 project
+- unified Reflection.cs 
+- backward compatible v1.4 typed arrays data bytes with BJSONParameters.v1_4TypedArray
+- * breaking runtime change if using RegisterCustomType() *
+
+v1.5.0
+------
+- moved .net 3.5 project to own folder to mitigate conflicting obj builds
+- carried over fastjson style optimizations
+- major string optimizations ~46% faster if using unicode strings
+- * breaking changes in output bytes (when using typed arrays) * 
+
+v1.4.24
+-------
+- fixed Typed Arrays of value types are serialized incorrectly when they are the root object (thanks to rbeurskens)
+- ability to create internal/private objects (removed the public access restriction on classes)
+
+v1.4.23
+-------
+- fixed side effect of changing BJSONParameters.UsingGlobalTypes inside classes and affecting the original value
+- fixed deserialize nested Dictionary without extensions with generic ToObject<>
+- fixed root enum deserialize (thanks to al6uiz)
+- Non public setter / readonly property support (thanks to rbeurskens)
+- unify reflection.cs with fastJSON
+
+v1.4.22
+-------
+- bug fix edge case in typed array with long >255 byte type names
+
+v1.4.21
+-------
+- bug fix deserializing array of objects with type information
+- test for above 
+- support for .net core and netstandard2.0 via separate project
+
 v1.4.20
 -------
 - added TimeSpan

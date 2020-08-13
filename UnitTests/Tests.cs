@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using fastBinaryJSON;
 using NUnit.Framework;
-using System.Data;
+using System;
 using System.Collections;
-using System.Threading;
-using fastBinaryJSON;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Data;
 using System.Diagnostics;
-using System.Linq;
 using System.Dynamic;
+using System.Linq;
+using System.Threading;
 
 //namespace UnitTests
 //{
@@ -1158,7 +1159,7 @@ public class tests
             jsonText = BJSON.ToBJSON(c);
 
             stopwatch.Stop();
-            Console.Write("\t" + stopwatch.ElapsedMilliseconds+"ms");
+            Console.Write("\t" + stopwatch.ElapsedMilliseconds + "ms");
             Console.Write("\tcount = " + c.items.Count);
             Console.WriteLine("\tsize = " + jsonText.Length.ToString("#,#"));
         }
@@ -1195,6 +1196,33 @@ public class tests
 
         var o = BJSON.ToObject<ctype>(s);
         Assert.AreEqual(ip.ip, o.ip);
+    }
+
+    public class readonlyProps
+    {
+        public List<string> Collection { get; }
+
+        public readonlyProps(List<string> collection)
+        {
+            Collection = collection;
+        }
+
+        public readonlyProps()
+        {
+        }
+    }
+
+    [Test]
+    public static void ReadOnlyProperty() // rbeurskens 
+    {
+        var dto = new readonlyProps(new List<string> { "test", "test2" });
+
+        BJSON.Parameters.ShowReadOnlyProperties = true;
+        var s = BJSON.ToBJSON(dto);
+        var o = BJSON.ToObject<readonlyProps>(s);
+
+        Assert.IsNotNull(o);
+        CollectionAssert.AreEqual(dto.Collection, o.Collection);
     }
 
     //[Test]
@@ -1502,6 +1530,13 @@ public class tests
 
         var r = BJSON.ToObject<objcontainer>(s);
         Assert.True(typeof(simpclass[]) == r.ds.GetType());
+
+
+        // value type array as root
+        var ii = new int[] { 1, 2, 3, 4, 5 };
+        s = BJSON.ToBJSON(ii);
+        var rr = BJSON.ToObject<int[]>(s);
+        Assert.True(typeof(int[]) == rr.GetType());
     }
 
     [Test]
@@ -1614,5 +1649,174 @@ public class tests
 
     }
 
+    public class test { }
+    [Test]
+    public static void ArrayOfObjectExtOff()
+    {
+        var s = BJSON.ToBJSON(new test[] { new test(), new test() }, new BJSONParameters { UseExtensions = false });
+        var o = BJSON.ToObject<test[]>(s);
+        Console.WriteLine(o.GetType().ToString());
+        Assert.AreEqual(typeof(test[]), o.GetType());
+    }
+    [Test]
+    public static void ArrayOfObjectsWithoutTypeInfoToObjectTyped()
+    {
+        var s = BJSON.ToBJSON(new test[] { new test(), new test() });
+        var o = BJSON.ToObject<test[]>(s);
+        Console.WriteLine(o.GetType().ToString());
+        Assert.AreEqual(typeof(test[]), o.GetType());
+    }
+    [Test]
+    public static void ArrayOfObjectsWithTypeInfoToObject()
+    {
+        var s = BJSON.ToBJSON(new test[] { new test(), new test() });
+        var o = BJSON.ToObject(s);
+        Console.WriteLine(o.GetType().ToString());
+        var i = o as test[];
+        Assert.AreEqual(typeof(test), i[0].GetType());
+    }
+
+
+    public class KeyAndValue<TKey, TValue>
+    {
+        public TKey Key { get; set; }
+        public TValue Value { get; set; }
+    }
+
+    public class Version
+    {
+        public byte Milestone { get; set; }
+        public byte Major { get; set; }
+        public byte Minor { get; set; }
+        public byte Revision { get; set; }
+    }
+
+    public class CommandSendInfo
+    {
+        public KeyAndValue<string, Version>[] Items { get; set; }
+
+    }
+
+    [Test]
+    public static void Longname()
+    {
+
+        var input = new CommandSendInfo
+        {
+            Items = new KeyAndValue<string, Version>[] { new KeyAndValue<string, Version> { Key = "Test", Value = new Version() } }
+        };
+
+        var bjson = fastBinaryJSON.BJSON.ToBJSON(input);
+
+        var output = fastBinaryJSON.BJSON.ToObject<CommandSendInfo>(bjson);
+
+        Assert.AreEqual("Test", output.Items[0].Key);
+    }
+
+    [Test]
+    public static void dicofdic()
+    {
+        var d = new Dictionary<string, Dictionary<string, string>>();
+        var dd = new Dictionary<string, string>();
+        dd.Add("Key1", "Value1");
+        dd.Add("Key2", "Value2");
+        dd.Add("Key3", "Value3");
+        dd.Add("Key4", "Value4");
+        dd.Add("Key5", "Value5");
+        d.Add("Section1", dd);
+        var s = BJSON.ToBJSON(d, new BJSONParameters { UseExtensions = false });
+        var o = BJSON.ToObject<Dictionary<string, Dictionary<string, string>>>(s);
+        var v = o["Section1"];
+
+        Assert.AreEqual(5, v.Count);
+        Assert.AreEqual("Value2", v["Key2"]);
+    }
+
+
+    public enum MyEnum
+    {
+        a,
+        b
+    }
+    [Test]
+    public static void RootEnum()
+    {
+        var e = MyEnum.b;
+        var s = BJSON.ToBJSON(e);
+
+        var o = BJSON.ToObject<MyEnum>(s);
+        Assert.AreEqual(e, o);
+
+        o = (MyEnum)BJSON.ToObject(s, typeof(MyEnum));
+        Assert.AreEqual(e, o);
+    }
+
+
+    private class npc
+    {
+        public int a = 1;
+        public int b = 2;
+    }
+    [Test]
+    public static void NonPublicClass()
+    {
+        var p = new npc();
+        p.a = 10;
+        p.b = 20;
+        var s = BJSON.ToBJSON(p);
+        var o = (npc)BJSON.ToObject(s);
+        Assert.AreEqual(10, o.a);
+        Assert.AreEqual(20, o.b);
+    }
+
+    public class Item
+    {
+        public int Id { get; set; }
+        public string Data { get; set; }
+    }
+
+    public class TestObject
+    {
+        public int Id { get; set; }
+        public string Stuff { get; set; }
+        public virtual ObservableCollection<Item> Items { get; set; }
+    }
+
+
+    [Test]
+    public static void noncapacitylist()
+    {
+        TestObject testObject = new TestObject
+        {
+            Id = 1,
+            Stuff = "test",
+            Items = new ObservableCollection<Item>()
+        };
+
+        testObject.Items.Add(new Item { Id = 1, Data = "Item 1" });
+        testObject.Items.Add(new Item { Id = 2, Data = "Item 2" });
+
+        var s = BJSON.ToBJSON(testObject);
+
+        TestObject copyObject = new TestObject();
+        BJSON.FillObject(copyObject, s);
+    }
+
+    //public class sizeop
+    //{
+    //    public int a = 10;
+    //    public int b = 1000;
+    //    public int v = 1000 * 1000;
+    //}
+
+    //[Test]
+    //public static void sizetest()
+    //{
+    //    var s = BJSON.ToBJSON(new sizeop(), new BJSONParameters { OptimizeSize = true , UseExtensions = false });
+    //    var t = BJSON.ToBJSON(new sizeop(), new BJSONParameters { UseExtensions = false});
+    //    var o = BJSON.ToObject<sizeop>(s);
+
+    //    Assert.AreEqual(10, o.a);
+    //}
 }// tests.
 //}
