@@ -3,7 +3,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace consoletest
@@ -39,7 +41,39 @@ namespace consoletest
     	public baseclass[] objs { get; set;}
         public Dictionary<string, class1> dic { get; set; }
     }
-    
+    public class TestClass
+    {
+        public string Channel { get; set; }
+        public string Start { get; set; }
+        public string Stop { get; set; }
+        public string Eventid { get; set; }
+        public string Charset { get; set; }
+
+        public List<string> Titles { get; set; } = new List<string>();
+        public List<string> Events { get; set; } = new List<string>();
+        public List<string> Descriptions { get; set; } = new List<string>();
+
+        public static List<TestClass> CreateList(int count)
+        {
+            List<TestClass> lst = new List<TestClass>();
+            foreach (int i in Enumerable.Range(1, count))
+            {
+                TestClass t = new TestClass
+                {
+                    Channel = $"Channel-{i % 10}",
+                    Start = $"{i * 1000}",
+                    Stop = $"{i * 1000 + 10}",
+                    Charset = "255"
+                };
+                t.Descriptions.Add($"Description Description Description Description Description Description Description {i} ");
+                t.Events.Add($"Event {i} ");
+                t.Titles.Add($"The Title {i} ");
+                lst.Add(t);
+            }
+            return lst;
+        }
+    }
+
     public class Program
     {
         static int count = 1000;
@@ -52,6 +86,8 @@ namespace consoletest
         public static void Main(string[] args)
         {
 
+            //fastbjson_deserialize(10);
+            //return;
             // Return r = new Return();
             // r.Name = "hello";
             // r.Field1 = "dsasdF";
@@ -99,6 +135,8 @@ namespace consoletest
             // object oo = fastBinaryJSON.BJSON.ToObject<NoExt>(str);//<NoExt>(str);
 
             Console.WriteLine(".net version = " + Environment.Version);
+            Console.WriteLine(".net os = " + Environment.OSVersion);
+            //Console.WriteLine("is windows = " + fastBinaryJSON.Reflection.Instance.isWindows);
             Console.WriteLine("press key : (E)xotic ");
             //if (Console.ReadKey().Key == ConsoleKey.E)
             //    exotic = true;
@@ -109,7 +147,7 @@ namespace consoletest
             //bin_serialize();
             fastjson_serialize();
             //bin_deserialize();
-            //fastjson_deserialize();
+            fastjson_deserialize();
 
             //dsser = true;
             //Console.WriteLine();
@@ -135,6 +173,35 @@ namespace consoletest
             //			jsonnet4_deserialize();
             //			stack_deserialize();
             #endregion
+            Console.ReadKey();
+        }
+
+        private static void fastbjson_deserialize(int count)
+        {
+            Console.WriteLine();
+            Console.WriteLine("fastbjson deserialize");
+            List<double> times = new List<double>();
+            var data = TestClass.CreateList(20000);
+            byte[] jsonText = BJSON.ToBJSON(data, new BJSONParameters { UseUnicodeStrings = true });
+            //File.WriteAllText("FastJson.json", jsonText);
+            Stopwatch s = new Stopwatch();
+            for (int tests = 0; tests < count; tests++)
+            {
+                s.Start();
+                var result = BJSON.ToObject<List<TestClass>>(jsonText);
+                s.Stop();
+                times.Add(s.ElapsedMilliseconds);// DateTime.Now.Subtract(st).TotalMilliseconds);
+                s.Reset();
+                if (tests % 10 == 0)
+                    Console.Write(".");
+            }
+            Console.WriteLine();
+
+            //var min = times.Min();
+            //var max = times.Max();
+            //var tot = (times.Sum() - max - min) / (count - 2);
+            //Console.WriteLine($"Min: {times.Min()} Max: {times.Max()} Average: {times.Average()} avg: {tot}");
+            Console.WriteLine($"Min: {times.Min()} Max: {times.Max()} Average: {times.Average()}");
         }
 
         private static string pser(object data)

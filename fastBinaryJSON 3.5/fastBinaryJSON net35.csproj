@@ -44,7 +44,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>Full</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>..\output\net20\</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -75,22 +75,12 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>fastJSON.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\fastbinaryjson\fastJSON.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="dynamic.cs" />
-    <Compile Include="Getters.cs" />
-    <Compile Include="BJsonSerializer.cs" />
-    <Compile Include="BJSON.cs" />
-    <Compile Include="BJsonParser.cs" />
-    <Compile Include="Reflection.cs" />
-    <Compile Include="SafeDictionary.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
@@ -115,7 +105,30 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="fastJSON.snk" />
+    <Compile Include="..\fastBinaryJSON\AssemblyInfo.cs">
+      <Link>AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\fastBinaryJSON\BJSON.cs">
+      <Link>BJSON.cs</Link>
+    </Compile>
+    <Compile Include="..\fastBinaryJSON\BJsonParser.cs">
+      <Link>BJsonParser.cs</Link>
+    </Compile>
+    <Compile Include="..\fastBinaryJSON\BJsonSerializer.cs">
+      <Link>BJsonSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\fastBinaryJSON\dynamic.cs">
+      <Link>dynamic.cs</Link>
+    </Compile>
+    <Compile Include="..\fastBinaryJSON\Getters.cs">
+      <Link>Getters.cs</Link>
+    </Compile>
+    <Compile Include="..\fastBinaryJSON\Reflection.cs">
+      <Link>Reflection.cs</Link>
+    </Compile>
+    <Compile Include="..\fastBinaryJSON\SafeDictionary.cs">
+      <Link>SafeDictionary.cs</Link>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

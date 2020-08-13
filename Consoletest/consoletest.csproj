@@ -49,6 +49,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <Optimize>false</Optimize>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -61,9 +62,6 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="dataobjects.cs" />
     <Compile Include="Program.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\fastBinaryJSON\fastBinaryJSON.csproj">

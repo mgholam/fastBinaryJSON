@@ -1,3 +1,4 @@
+using fastJSON;
 using System;
 using System.Collections.Generic;
 
@@ -8,10 +9,12 @@ namespace fastBinaryJSON
         readonly byte[] _json;
         int _index;
         bool _useUTC = true;
+        bool _v1_4TA = false;
 
-        internal BJsonParser(byte[] json, bool useUTC)
+        internal BJsonParser(byte[] json, bool useUTC, bool v1_4TA)
         {
             this._json = json;
+            _v1_4TA = v1_4TA;
             _useUTC = useUTC;
         }
 
@@ -23,7 +26,7 @@ namespace fastBinaryJSON
 
         private Dictionary<string, object> ParseObject()
         {
-            Dictionary<string, object> dic = new Dictionary<string, object>();
+            Dictionary<string, object> dic = new Dictionary<string, object>(10);
             bool breakparse = false;
             while (!breakparse)
             {
@@ -54,9 +57,14 @@ namespace fastBinaryJSON
         {
             bool breakparse;
             string key = "";
-            if (t != TOKENS.NAME)
+            //if (t != TOKENS.NAME)
+            if (t == TOKENS.NAME)
+                key = ParseName();
+            else if (t == TOKENS.NAME_UNI)
+                key = ParseName2();
+            else
                 throw new Exception("excpecting a name field");
-            key = ParseName();
+
             t = GetToken();
             if (t != TOKENS.COLON)
                 throw new Exception("expecting a colon");
@@ -68,10 +76,18 @@ namespace fastBinaryJSON
             return breakparse;
         }
 
+        private string ParseName2() // unicode byte len string -> <128 len chars
+        {
+            byte c = _json[_index++];
+            string s = Reflection.UnicodeGetString(_json, _index, c);
+            _index += c;
+            return s;
+        }
+
         private string ParseName()
         {
             byte c = _json[_index++];
-            string s = Reflection.Instance.utf8.GetString(_json, _index, c);
+            string s = Reflection.UTF8GetString(_json, _index, c);
             _index += c;
             return s;
         }
@@ -179,11 +195,14 @@ namespace fastBinaryJSON
 
         private object ParseTypedArray(byte token)
         {
-            // fix : if long name
-
             typedarray ar = new typedarray();
             if (token == TOKENS.ARRAY_TYPED)
-                ar.typename = ParseName();
+            {
+                if (_v1_4TA)
+                    ar.typename = ParseName(); 
+                else
+                    ar.typename = ParseName2();
+            }
             else
                 ar.typename = ParseNameLong();
 
@@ -209,18 +228,18 @@ namespace fastBinaryJSON
             return ar;
         }
 
-        private string ParseNameLong()
+        private string ParseNameLong() // unicode short len string -> <32k chars
         {
-            short c = (short)Helper.ToInt16(_json, _index);
+            short c = Helper.ToInt16(_json, _index);
             _index += 2;
-            string s = Reflection.Instance.utf8.GetString(_json, _index, c);
+            string s = Reflection.UnicodeGetString(_json, _index, c);
             _index += c;
             return s;
         }
 
         private object ParseChar()
         {
-            short u = (short)Helper.ToInt16(_json, _index);
+            short u = Helper.ToInt16(_json, _index);
             _index += 2;
             return u;
         }
@@ -294,7 +313,7 @@ namespace fastBinaryJSON
             int c = Helper.ToInt32(_json, _index);
             _index += 4;
 
-            string s = Reflection.Instance.unicode.GetString(_json, _index, c);
+            string s = Reflection.UnicodeGetString(_json, _index, c);
             _index += c;
             return s;
         }
@@ -304,7 +323,7 @@ namespace fastBinaryJSON
             int c = Helper.ToInt32(_json, _index);
             _index += 4;
 
-            string s = Reflection.Instance.utf8.GetString(_json, _index, c);
+            string s = Reflection.UTF8GetString(_json, _index, c);
             _index += c;
             return s;
         }

@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using fastBinaryJSON;
 using NUnit.Framework;
-using System.Data;
+using System;
 using System.Collections;
-using System.Threading;
-using fastBinaryJSON;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Data;
 using System.Diagnostics;
-using System.Linq;
 using System.Dynamic;
+using System.Linq;
+using System.Threading;
 
 //namespace UnitTests
 //{
@@ -1126,7 +1127,7 @@ public class tests
             jsonText = BJSON.ToBJSON(c);
 
             stopwatch.Stop();
-            Console.Write("\t" + stopwatch.ElapsedMilliseconds+"ms");
+            Console.Write("\t" + stopwatch.ElapsedMilliseconds + "ms");
             Console.Write("\tcount = " + c.items.Count);
             Console.WriteLine("\tsize = " + jsonText.Length.ToString("#,#"));
         }
@@ -1215,7 +1216,7 @@ public class tests
     [Test]
     public static void ReadOnlyProperty() // rbeurskens 
     {
-        var dto = new readonlyProps(new List<string> {"test", "test2"});
+        var dto = new readonlyProps(new List<string> { "test", "test2" });
 
         BJSON.Parameters.ShowReadOnlyProperties = true;
         var s = BJSON.ToBJSON(dto);
@@ -1224,7 +1225,7 @@ public class tests
         Assert.IsNotNull(o);
         CollectionAssert.AreEqual(dto.Collection, o.Collection);
     }
-    
+
     //[Test]
     //public static void stringint()
     //{
@@ -1530,6 +1531,13 @@ public class tests
 
         var r = BJSON.ToObject<objcontainer>(s);
         Assert.True(typeof(simpclass[]) == r.ds.GetType());
+
+
+        // value type array as root
+        var ii = new int[] { 1, 2, 3, 4, 5 };
+        s = BJSON.ToBJSON(ii);
+        var rr = BJSON.ToObject<int[]>(s);
+        Assert.True(typeof(int[]) == rr.GetType());
     }
 
     [Test]
@@ -1743,5 +1751,73 @@ public class tests
         o = (MyEnum)BJSON.ToObject(s, typeof(MyEnum));
         Assert.AreEqual(e, o);
     }
+
+
+    private class npc
+    {
+        public int a = 1;
+        public int b = 2;
+    }
+    [Test]
+    public static void NonPublicClass()
+    {
+        var p = new npc();
+        p.a = 10;
+        p.b = 20;
+        var s = BJSON.ToBJSON(p);
+        var o = (npc)BJSON.ToObject(s);
+        Assert.AreEqual(10, o.a);
+        Assert.AreEqual(20, o.b);
+    }
+
+    public class Item
+    {
+        public int Id { get; set; }
+        public string Data { get; set; }
+    }
+
+    public class TestObject
+    {
+        public int Id { get; set; }
+        public string Stuff { get; set; }
+        public virtual ObservableCollection<Item> Items { get; set; }
+    }
+
+
+    [Test]
+    public static void noncapacitylist()
+    {
+        TestObject testObject = new TestObject
+        {
+            Id = 1,
+            Stuff = "test",
+            Items = new ObservableCollection<Item>()
+        };
+
+        testObject.Items.Add(new Item { Id = 1, Data = "Item 1" });
+        testObject.Items.Add(new Item { Id = 2, Data = "Item 2" });
+
+        var s = BJSON.ToBJSON(testObject);
+
+        TestObject copyObject = new TestObject();
+        BJSON.FillObject(copyObject, s);
+    }
+
+    //public class sizeop
+    //{
+    //    public int a = 10;
+    //    public int b = 1000;
+    //    public int v = 1000 * 1000;
+    //}
+
+    //[Test]
+    //public static void sizetest()
+    //{
+    //    var s = BJSON.ToBJSON(new sizeop(), new BJSONParameters { OptimizeSize = true , UseExtensions = false });
+    //    var t = BJSON.ToBJSON(new sizeop(), new BJSONParameters { UseExtensions = false});
+    //    var o = BJSON.ToObject<sizeop>(s);
+
+    //    Assert.AreEqual(10, o.a);
+    //}
 }// tests.
 //}
