@@ -12,6 +12,7 @@ using System.Linq;
 using System.Data;
 #endif
 using System.Collections.Specialized;
+using System.Linq.Expressions;
 
 namespace fastJSON
 {
@@ -94,6 +95,7 @@ namespace fastJSON
         public delegate object GenericGetter(object obj);
         private delegate object CreateObject();
         private delegate object CreateList(int capacity);
+        internal delegate void AddItemToCollection(object collection, object item);
 
         private SafeDictionary<Type, string> _tyname = new SafeDictionary<Type, string>(10);
         private SafeDictionary<string, Type> _typecache = new SafeDictionary<string, Type>(10);
@@ -101,9 +103,11 @@ namespace fastJSON
         private SafeDictionary<Type, CreateList> _conlistcache = new SafeDictionary<Type, CreateList>(10);
         private SafeDictionary<Type, Getters[]> _getterscache = new SafeDictionary<Type, Getters[]>(10);
         private SafeDictionary<string, Dictionary<string, myPropInfo>> _propertycache = new SafeDictionary<string, Dictionary<string, myPropInfo>>(10);
-        private SafeDictionary<Type, Type[]> _genericTypes = new SafeDictionary<Type, Type[]>(10);
+        private SafeDictionary<Type, Type[]> _genericArguments = new SafeDictionary<Type, Type[]>(10);
         private SafeDictionary<Type, Type> _genericTypeDef = new SafeDictionary<Type, Type>(10);
-        private static SafeDictionary<short, OpCode> _opCodes;
+        private SafeDictionary<GenericTypeKey, Type> _genericTypes = new SafeDictionary<GenericTypeKey, Type>(10);
+        private SafeDictionary<Type, AddItemToCollection> _genericCollectionAdders = new SafeDictionary<Type, AddItemToCollection>(10);
+        private static Dictionary<short, OpCode> _opCodes;
         private static List<string> _blacklistTypes = new List<string>()
         {
             "system.configuration.install.assemblyinstaller",
@@ -113,6 +117,66 @@ namespace fastJSON
             "system.windows.forms.bindingsource",
             "microsoft.exchange.management.systemmanager.winforms.exchangesettingsprovider"
         };
+
+        #region private implementation types        
+        /// <summary>
+        /// Composite key to lookup cached constructed generic types.
+        /// </summary>
+        private struct GenericTypeKey : IEquatable<GenericTypeKey>
+        {
+            private readonly Type _genericDefinition;
+            private readonly Type[] _parameters;
+
+            public Type[] GetParameters()
+            {
+                // Results of this method are not exposed, so we can omit making a copy to keep the instance immutable
+                return _parameters ?? Type.EmptyTypes;
+            }
+
+            public GenericTypeKey(Type genericDefinition, params Type[] parameters)
+            {
+                _genericDefinition = genericDefinition;
+                // input comes from another class, just make a copy to be sure the array's elements do not change after creation.
+                _parameters = new Type[parameters.Length];
+                Array.Copy(parameters, _parameters, parameters.Length);
+            }
+
+            public bool Equals(GenericTypeKey other)
+            {
+                if (_genericDefinition != other._genericDefinition || (_parameters?.Length ?? -1) != (other._parameters?.Length ?? -1))
+                    return false;
+                if (_parameters == null && other._parameters == null) return true; // if one is null the other is too at this point, so checking only one would be enough
+                for (int i = 0; i < _parameters.Length; i++)
+                {
+                    if (_parameters[i] != other._parameters[i])
+                        return false;
+                }
+                return true;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                return obj is GenericTypeKey && Equals((GenericTypeKey) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hashCode = (_genericDefinition != null ? _genericDefinition.GetHashCode() : 0);
+                    if (_parameters == null) return (hashCode * 397);
+                    hashCode = (hashCode * 397) ^ _parameters.Length.GetHashCode();
+                    foreach (Type t in _parameters)
+                    {
+                        hashCode = (hashCode * 397) ^ (t != null ? t.GetHashCode() : 0);
+                    }
+                    return hashCode;
+                }
+            }
+
+        }
+        #endregion
 
         private static bool TryGetOpCode(short code, out OpCode opCode)
         {
@@ -205,6 +269,41 @@ namespace fastJSON
         }
         #endregion
 
+        public AddItemToCollection GetCollectionAdder(Type collectionType)
+        {
+            var collType = typeof(IList).IsAssignableFrom(collectionType) ? typeof(IList) : collectionType; // Delegate the call to IList.Add(object) for all types that implement it.
+            if (_genericCollectionAdders.TryGetValue(collType, out var adder))
+                return adder;
+
+            var itemType = collType.IsGenericType ? GetGenericArguments(collType).SingleOrDefault() ?? typeof(object) : typeof(object);
+            var mi = collType.GetMethod(nameof(ICollection<object>.Add), new[] {itemType});
+            if (mi != null)
+            {
+                var inst = Expression.Parameter(typeof(object), "collection");
+                var item = Expression.Parameter(typeof(object), "item");
+                var itemArgument = itemType == item.Type ? item : Expression.Convert(item, itemType) as Expression; // Cast the item only if itemType is not object
+                adder = Expression.Lambda<AddItemToCollection>(
+                    Expression.Call(Expression.Convert(inst, collType), mi, itemArgument),
+                    inst,
+                    item).Compile();
+            }
+            _genericCollectionAdders[collType] = adder;
+            return adder;
+        }
+
+        public Type GetGenericType(Type openType, params Type[] genericArguments)
+        {
+            Type result;
+            var key = new GenericTypeKey(openType, genericArguments);
+            if (_genericTypes.TryGetValue(key, out result))
+                return result;
+            var args = key.GetParameters();
+            System.Diagnostics.Debug.Assert(openType.GetGenericArguments().Length == args.Length);
+            result = openType.MakeGenericType(args);
+            _genericTypes.Add(key, result);
+            return result;
+        }
+
         public Type GetGenericTypeDefinition(Type t)
         {
             Type tt = null;
@@ -221,12 +320,12 @@ namespace fastJSON
         public Type[] GetGenericArguments(Type t)
         {
             Type[] tt = null;
-            if (_genericTypes.TryGetValue(t, out tt))
+            if (_genericArguments.TryGetValue(t, out tt))
                 return tt;
             else
             {
                 tt = t.GetGenericArguments();
-                _genericTypes.Add(t, tt);
+                _genericArguments.Add(t, tt);
                 return tt;
             }
         }
@@ -851,8 +950,9 @@ namespace fastJSON
             _constrcache = new SafeDictionary<Type, CreateObject>(10);
             _getterscache = new SafeDictionary<Type, Getters[]>(10);
             _propertycache = new SafeDictionary<string, Dictionary<string, myPropInfo>>(10);
-            _genericTypes = new SafeDictionary<Type, Type[]>(10);
+            _genericArguments = new SafeDictionary<Type, Type[]>(10);
             _genericTypeDef = new SafeDictionary<Type, Type>(10);
+            _genericTypes = new SafeDictionary<GenericTypeKey, Type>(10);
         }
     }
 }

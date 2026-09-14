@@ -6,6 +6,7 @@ using System.Data;
 #endif
 using System.IO;
 using System.Collections.Specialized;
+using System.Linq.Expressions;
 using fastJSON;
 
 namespace fastBinaryJSON
@@ -215,7 +216,7 @@ namespace fastBinaryJSON
             return new BJSONSerializer(param).ConvertToBJSON(obj);
         }
         /// <summary>
-        /// Fill a given object with the binary json represenation
+        /// Fill a given object with the binary json representation
         /// </summary>
         /// <param name="input"></param>
         /// <param name="json"></param>
@@ -605,8 +606,8 @@ namespace fastBinaryJSON
                                     break;
                                 default:
                                     {
-                                        if (pi.IsGenericType && pi.IsValueType == false)
-                                            oset = CreateGenericList((List<object>)v, pi.pt, pi.bt, globaltypes);
+                                        if (pi.IsGenericType && !pi.IsValueType)
+                                            oset = CreateGenericCollection((List<object>)v, pi.pt, pi.bt, globaltypes);
                                         else if ((pi.IsClass || pi.IsStruct || pi.IsInterface) && v is Dictionary<string, object>)
                                         {
                                             var oo = (Dictionary<string, object>)v;
@@ -710,11 +711,11 @@ namespace fastBinaryJSON
             return col;
         }
 
-        private object CreateGenericList(List<object> data, Type pt, Type bt, Dictionary<string, object> globalTypes)
+        private object CreateGenericList(IEnumerable<object> data, Type pt, Type bt, Dictionary<string, object> globalTypes)
         {
             if (pt != typeof(object))
             {
-                IList col = (IList)Reflection.Instance.FastCreateList(pt, data.Count);
+                var col = (IList)Reflection.Instance.FastCreateList(pt.IsInterface ? Reflection.Instance.GetGenericType(typeof(List<>),bt ?? typeof(object)) : pt, data.Count);
                 // create an array of objects
                 foreach (object ob in data)
                 {
@@ -738,13 +739,63 @@ namespace fastBinaryJSON
             return data;
         }
 
+        private object CreateGenericCollection(IEnumerable<object> data, Type pt, Type bt, Dictionary<string, object> globalTypes)
+        {
+            if (pt != typeof(object))
+            {
+                var objType = pt;
+                if (pt.IsInterface)
+                {
+#if NET4
+                    // ISet<T> is also a collection interface, but is not implemented by any List or Dictionary, so use HashSet<T> as default implementation
+                    objType = new[] {typeof(List<>), typeof(HashSet<>)}
+                        .Select(t => Reflection.Instance.GetGenericType(t, bt ?? typeof(object)))
+                        .FirstOrDefault(pt.IsAssignableFrom);
+#else
+                    objType = Reflection.Instance.GetGenericType(typeof(List<>), bt ?? typeof(object));
+                    if (!pt.IsAssignableFrom(objType))
+                        objType = null;
+#endif
+                    if (objType == null)
+                        throw new NotSupportedException("Unable to resolve an implementation type for " + pt.FullName);
+                }
+                if (typeof(IList).IsAssignableFrom(objType))
+                    return CreateGenericList(data, objType, bt, globalTypes);
+                // create an array of objects
+                var add = Reflection.Instance.GetCollectionAdder(objType);
+                if (add == null) throw new NotSupportedException("Unable to find an Add() method for collection " + objType.FullName);
+                var col = Reflection.Instance.FastCreateInstance(objType);
+
+                foreach (object ob in data)
+                {
+                    if (ob is IDictionary)
+                        add(col, ParseDictionary((Dictionary<string, object>) ob, globalTypes, bt, null));
+
+                    else if (ob is List<object>)
+                    {
+                        if (bt.IsGenericType)
+                            add(col, (List<object>) ob);
+                        else
+                            add(col, ((List<object>) ob).ToArray());
+                    }
+                    else if (ob is typedarray)
+                        add(col, ((typedarray) ob).data.ToArray());
+                    else
+                        add(col, ob);
+                }
+                return col;
+            }
+            return data;
+        }
+
         private object CreateStringKeyDictionary(Dictionary<string, object> reader, Type pt, Type[] types, Dictionary<string, object> globalTypes)
         {
-            var col = (IDictionary)Reflection.Instance.FastCreateInstance(pt);
             Type arraytype = null;
             Type t2 = null;
             if (types != null)
                 t2 = types[1];
+
+            var col = (IDictionary)Reflection.Instance.FastCreateInstance(pt.IsInterface ? Reflection.Instance.GetGenericType(typeof(Dictionary<,>), typeof(string), t2??typeof(object)) : pt);
 
             Type generictype = null;
             var ga = Reflection.Instance.GetGenericArguments(t2);
@@ -781,7 +832,6 @@ namespace fastBinaryJSON
 
         private object CreateDictionary(List<object> reader, Type pt, Type[] types, Dictionary<string, object> globalTypes)
         {
-            IDictionary col = (IDictionary)Reflection.Instance.FastCreateInstance(pt);
             Type t1 = null;
             Type t2 = null;
             if (types != null)
@@ -789,6 +839,8 @@ namespace fastBinaryJSON
                 t1 = types[0];
                 t2 = types[1];
             }
+
+            var col = (IDictionary)Reflection.Instance.FastCreateInstance(pt.IsInterface && t1!=null ? Reflection.Instance.GetGenericType(typeof(Dictionary<,>), t1, t2??typeof(object)) : pt);
 
             foreach (Dictionary<string, object> values in reader)
             {
